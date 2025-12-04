@@ -224,7 +224,7 @@
                 <div class="nav-label">Assignment</div>
             </a>
 
-            <a href="/discussions" class="nav-item discussion {{ request()->is('discussions*') ? 'active' : '' }}">
+            <a href="/discussions" class="nav-item {{ request()->is('discussions*') || request()->is('subjects*') ? 'active' : '' }}">
                 <div class="nav-icon">💬</div>
                 <div class="nav-label">Discussion</div>
             </a>
