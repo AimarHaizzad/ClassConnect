@@ -16,6 +16,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 
 // Profile Module Routes
 Route::resource('profiles', ProfileController::class);
+Route::get('/password/change', [ProfileController::class, 'showChangePassword'])->name('password.change');
+Route::put('/password/update', [ProfileController::class, 'updatePassword'])->name('password.update');
 
 // Lesson Module Routes
 Route::resource('lessons', LessonController::class);

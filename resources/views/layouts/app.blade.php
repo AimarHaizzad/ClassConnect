@@ -172,6 +172,18 @@
             color: white;
         }
 
+        .nav-item.expandable {
+            position: relative;
+        }
+
+        .nav-item.expandable .nav-arrow {
+            transition: transform 0.3s;
+        }
+
+        .nav-item.expandable.expanded .nav-arrow {
+            transform: rotate(90deg);
+        }
+
         /* Main Content Area */
         .content-area {
             flex: 1;
@@ -209,10 +221,19 @@
                 <div class="nav-label">Dashboard</div>
             </a>
 
-            <a href="/profiles" class="nav-item {{ request()->is('profiles*') ? 'active' : '' }}">
+            <div class="nav-item expandable {{ request()->is('profiles*') || request()->is('password*') ? 'expanded' : '' }}" onclick="toggleProfileMenu(event)">
                 <div class="nav-icon">👤</div>
                 <div class="nav-label">Profile</div>
-            </a>
+                <div class="nav-arrow">▶</div>
+            </div>
+            <div class="nav-submenu {{ request()->is('profiles*') || request()->is('password*') ? '' : '' }}" style="{{ request()->is('profiles*') || request()->is('password*') ? 'display: block;' : '' }}">
+                <a href="/profiles" class="nav-item {{ request()->is('profiles') && !request()->is('profiles/*') ? 'active' : '' }}">
+                    User Profile
+                </a>
+                <a href="/password/change" class="nav-item {{ request()->is('password*') ? 'active' : '' }}">
+                    Change Password
+                </a>
+            </div>
 
             <a href="/lessons" class="nav-item {{ request()->is('lessons*') ? 'active' : '' }}">
                 <div class="nav-icon">📚</div>
@@ -240,6 +261,16 @@
         function handleProfileClick() {
             // Profile click handler - can be extended later
             console.log('Profile clicked');
+        }
+
+        function toggleProfileMenu(event) {
+            event.preventDefault();
+            const menuItem = event.currentTarget;
+            menuItem.classList.toggle('expanded');
+            const submenu = menuItem.nextElementSibling;
+            if (submenu && submenu.classList.contains('nav-submenu')) {
+                submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+            }
         }
     </script>
 </body>

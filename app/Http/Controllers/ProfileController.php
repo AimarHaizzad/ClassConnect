@@ -3,15 +3,33 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): View
     {
         return view('profiles.index');
+    }
+
+    /**
+     * Show the change password form.
+     */
+    public function showChangePassword(): View
+    {
+        return view('profiles.change-password');
+    }
+
+    /**
+     * Update the user's password.
+     */
+    public function updatePassword(Request $request)
+    {
+        // Placeholder - functionality to be implemented later
+        return redirect()->route('password.change')->with('success', 'Password updated successfully');
     }
 
     /**
