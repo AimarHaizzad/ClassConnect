@@ -15,6 +15,7 @@ class Comment extends Model
         'discussion_id',
         'user_id',
         'content',
+        'photo',
     ];
 
     public function discussion(): BelongsTo
