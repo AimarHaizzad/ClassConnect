@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,25 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
+
+// API route for checking field uniqueness (for inline validation)
+Route::get('/api/check-unique', function (Request $request) {
+    $field = $request->query('field');
+    $value = $request->query('value');
+
+    if (! in_array($field, ['username', 'email', 'user_id'])) {
+        return response()->json(['error' => 'Invalid field'], 400);
+    }
+
+    $exists = \App\Models\User::where($field, $value)->exists();
+
+    $fieldLabel = str_replace('_', ' ', $field);
+
+    return response()->json([
+        'unique' => ! $exists,
+        'message' => $exists ? "This {$fieldLabel} is already taken." : null,
+    ]);
+})->name('api.check-unique');
 
 // Password Reset Routes (Forgot Password)
 Route::get('/forgot-password', [App\Http\Controllers\PasswordResetController::class, 'showForgotPassword'])->name('password.request');
