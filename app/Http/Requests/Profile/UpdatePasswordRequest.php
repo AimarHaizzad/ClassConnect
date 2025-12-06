@@ -15,7 +15,13 @@ class UpdatePasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'confirmed',
+                'different:current_password', // New password must be different from current password
+            ],
         ];
     }
 
@@ -26,6 +32,7 @@ class UpdatePasswordRequest extends FormRequest
             'password.required' => 'Please enter a new password.',
             'password.min' => 'New password must be at least 6 characters.',
             'password.confirmed' => 'New password confirmation does not match.',
+            'password.different' => 'New password must be different from your current password.',
         ];
     }
 }

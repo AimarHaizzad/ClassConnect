@@ -273,16 +273,19 @@
                 @method('PUT')
 
                 <div class="form-group">
-                    <label class="form-label" for="current_password">Current Password</label>
+                    <label class="form-label" for="current_password">Current Password <span style="color: #dc3545;">*</span></label>
                     <div class="password-input-wrapper">
-                        <input type="text" id="current_password" name="current_password" class="form-input" value="{{ old('current_password', $currentPassword ?? '') }}" placeholder="Enter Current Password" required>
+                        <input type="password" id="current_password" name="current_password" class="form-input" value="{{ old('current_password') }}" placeholder="Enter Current Password" required autofocus>
                         <button type="button" class="password-toggle" onclick="togglePasswordVisibility('current_password', 'toggle_current')">
-                            <span id="toggle_current">🙈</span>
+                            <span id="toggle_current">👁️</span>
                         </button>
                     </div>
                     @error('current_password')
                         <div class="error-message">{{ $message }}</div>
                     @enderror
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        You must enter your current password to verify your identity.
+                    </div>
                 </div>
 
                 <div class="form-group">
