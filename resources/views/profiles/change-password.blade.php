@@ -6,6 +6,8 @@
     <style>
         .password-container {
             max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .password-title {
@@ -13,6 +15,7 @@
             font-weight: bold;
             color: #333;
             margin-bottom: 30px;
+            text-align: center;
         }
 
         .password-card {
@@ -20,6 +23,7 @@
             border-radius: 12px;
             padding: 40px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
         }
 
         .form-group {
