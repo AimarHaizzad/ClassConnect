@@ -27,6 +27,8 @@ class User extends Authenticatable
         'user_type',
         'photo',
         'password',
+        'failed_login_attempts',
+        'locked_until',
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'date_of_birth' => 'date',
+            'locked_until' => 'datetime',
         ];
     }
 
