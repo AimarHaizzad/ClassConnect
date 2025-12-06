@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Profile\UpdatePhotoRequest;
+use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -117,17 +118,31 @@ class ProfileController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(): View
     {
-        //
+        $user = Auth::user();
+
+        return view('profiles.edit', compact('user'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        //
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $validated = $request->validated();
+
+        User::where('id', $user->id)->update($validated);
+
+        return redirect()->route('profiles.edit')
+            ->with('success', 'Your Update has been saved!');
     }
 
     /**

@@ -322,7 +322,7 @@
                         <td class="profile-info-value">{{ ucfirst($user->user_type) }}</td>
                     </tr>
                 </table>
-                <button class="edit-profile-btn" onclick="handleEditProfile()">Edit Profile</button>
+                <a href="{{ route('profiles.edit') }}" class="edit-profile-btn" style="text-decoration: none; display: inline-block;">Edit Profile</a>
             </div>
         </div>
     </div>
