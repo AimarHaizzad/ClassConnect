@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ClassConnect</title>
+    <title>Reset Password - ClassConnect</title>
     <style>
         * {
             margin: 0;
@@ -82,7 +82,14 @@
         .form-title {
             font-size: 24px;
             font-weight: bold;
-            color: #333;
+            color: white;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 30px;
             text-align: center;
         }
@@ -125,24 +132,7 @@
             color: #999;
         }
 
-        .form-select {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            background: white;
-            color: #333;
-            appearance: none;
-            cursor: pointer;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: #9A7A4A;
-        }
-
-        .login-button {
+        .submit-button {
             width: 100%;
             padding: 14px;
             background: #000;
@@ -156,31 +146,43 @@
             transition: background 0.3s;
         }
 
-        .login-button:hover {
+        .submit-button:hover {
             background: #333;
         }
 
         .form-links {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             margin-top: 20px;
             font-size: 14px;
         }
 
         .form-links a {
-            color: #333;
+            color: white;
             text-decoration: none;
             transition: color 0.3s;
         }
 
         .form-links a:hover {
-            color: #9A7A4A;
+            color: #ddd;
         }
 
         .error-message {
-            color: #dc3545;
+            color: #ffebee;
+            background: rgba(220, 53, 69, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
             font-size: 14px;
             margin-top: 5px;
+        }
+
+        .success-message {
+            color: #e8f5e9;
+            background: rgba(46, 125, 50, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 15px;
         }
 
         @media (max-width: 768px) {
@@ -201,57 +203,55 @@
 <body>
     <div class="container">
         <div class="left-panel">
-            <div class="graduation-icon">🎓</div>
-            <h1>Empower Your Education Journey Today!</h1>
-            <p>With ClassConnect, students and teachers can access classes, share materials, and communicate effortlessly. Stay updated with announcements, manage assignments, and keep your academic life organized anytime, anywhere.</p>
+            <div class="graduation-icon">🔑</div>
+            <h1>Create New Password</h1>
+            <p>Enter your new password below. Make sure it's at least 6 characters long and keep it secure. This reset link expires in 10 minutes and can only be used once.</p>
         </div>
 
         <div class="right-panel">
             <div class="logo-text">ClassConnect</div>
-            <h2 class="form-title">User Login</h2>
+            <h2 class="form-title">Reset Password</h2>
+            <p class="form-subtitle">Enter your new password</p>
 
-            <form method="POST" action="{{ route('login') }}">
+            @if($errors->any())
+                <div class="error-message">
+                    <ul style="margin: 0; padding-left: 20px;">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('password.reset.submit') }}">
                 @csrf
+                <input type="hidden" name="token" value="{{ $token }}">
 
                 <div class="form-group">
                     <div class="input-wrapper">
-                        <span class="input-icon">👤</span>
-                        <input type="text" name="username" class="form-input" placeholder="username" value="{{ old('username') }}" required>
+                        <span class="input-icon">📧</span>
+                        <input type="email" name="email" class="form-input" placeholder="Email Address" value="{{ old('email', $email) }}" required autofocus>
                     </div>
-                    @error('username')
-                        <div class="error-message">{{ $message }}</div>
-                    @enderror
                 </div>
 
                 <div class="form-group">
                     <div class="input-wrapper">
                         <span class="input-icon">🔒</span>
-                        <input type="password" name="password" class="form-input" placeholder="password" required>
+                        <input type="password" name="password" class="form-input" placeholder="New Password" required>
                     </div>
-                    @error('password')
-                        <div class="error-message">{{ $message }}</div>
-                    @enderror
                 </div>
 
                 <div class="form-group">
                     <div class="input-wrapper">
-                        <span class="input-icon">▼</span>
-                        <select name="user_type" class="form-select" required>
-                            <option value="">select user</option>
-                            <option value="student" {{ old('user_type') == 'student' ? 'selected' : '' }}>Student</option>
-                            <option value="lecturer" {{ old('user_type') == 'lecturer' ? 'selected' : '' }}>Lecturer</option>
-                        </select>
+                        <span class="input-icon">🔒</span>
+                        <input type="password" name="password_confirmation" class="form-input" placeholder="Confirm New Password" required>
                     </div>
-                    @error('user_type')
-                        <div class="error-message">{{ $message }}</div>
-                    @enderror
                 </div>
 
-                <button type="submit" class="login-button">Login</button>
+                <button type="submit" class="submit-button">Reset Password</button>
 
                 <div class="form-links">
-                    <a href="{{ route('register') }}">Create an account</a>
-                    <a href="{{ route('password.request') }}">Forgot Password?</a>
+                    <a href="{{ route('login') }}">← Back to Login</a>
                 </div>
             </form>
         </div>
