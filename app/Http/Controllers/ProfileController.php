@@ -80,7 +80,10 @@ class ProfileController extends Controller
      */
     public function showChangePassword(): View
     {
-        return view('profiles.change-password');
+        /** @var User $user */
+        $user = Auth::user();
+
+        return view('profiles.change-password', ['currentPassword' => $user->password ?? '']);
     }
 
     /**

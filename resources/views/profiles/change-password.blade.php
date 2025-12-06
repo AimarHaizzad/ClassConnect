@@ -34,15 +34,40 @@
             font-size: 14px;
         }
 
+        .password-input-wrapper {
+            position: relative;
+        }
+
         .form-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 45px 12px 16px;
             border: 1px solid #E0E0E0;
             border-radius: 8px;
             font-size: 14px;
             background: #f9f9f9;
             color: #333;
             transition: border-color 0.2s, background 0.2s;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .password-toggle:hover {
+            color: #333;
         }
 
         .form-input:focus {
@@ -245,7 +270,12 @@
 
                 <div class="form-group">
                     <label class="form-label" for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password" class="form-input" placeholder="Enter Current Password" required>
+                    <div class="password-input-wrapper">
+                        <input type="text" id="current_password" name="current_password" class="form-input" value="{{ old('current_password', $currentPassword ?? '') }}" placeholder="Enter Current Password" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('current_password', 'toggle_current')">
+                            <span id="toggle_current">🙈</span>
+                        </button>
+                    </div>
                     @error('current_password')
                         <div class="error-message">{{ $message }}</div>
                     @enderror
@@ -253,7 +283,12 @@
 
                 <div class="form-group">
                     <label class="form-label" for="password">New Password</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter New Password" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Enter New Password" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password', 'toggle_new')">
+                            <span id="toggle_new">👁️</span>
+                        </button>
+                    </div>
                     @error('password')
                         <div class="error-message">{{ $message }}</div>
                     @enderror
@@ -261,7 +296,12 @@
 
                 <div class="form-group">
                     <label class="form-label" for="password_confirmation">Confirm New Password</label>
-                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-input" placeholder="Enter Confirm New Password" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password_confirmation" name="password_confirmation" class="form-input" placeholder="Enter Confirm New Password" required>
+                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password_confirmation', 'toggle_confirm')">
+                            <span id="toggle_confirm">👁️</span>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="button" class="btn btn-update" onclick="showConfirmationModal()">Update Password</button>
@@ -291,6 +331,19 @@
     @endif
 
     <script>
+        function togglePasswordVisibility(inputId, toggleId) {
+            const input = document.getElementById(inputId);
+            const toggle = document.getElementById(toggleId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                toggle.textContent = '👁️';
+            }
+        }
+
         function showConfirmationModal() {
             document.getElementById('confirmationModal').classList.add('show');
         }
