@@ -142,13 +142,6 @@
             border-color: #9A7A4A;
         }
 
-        .select-arrow {
-            position: absolute;
-            right: 15px;
-            color: #666;
-            pointer-events: none;
-        }
-
         .login-button {
             width: 100%;
             padding: 14px;
@@ -248,7 +241,6 @@
                             <option value="student" {{ old('user_type') == 'student' ? 'selected' : '' }}>Student</option>
                             <option value="lecturer" {{ old('user_type') == 'lecturer' ? 'selected' : '' }}>Lecturer</option>
                         </select>
-                        <span class="select-arrow">▼</span>
                     </div>
                     @error('user_type')
                         <div class="error-message">{{ $message }}</div>
