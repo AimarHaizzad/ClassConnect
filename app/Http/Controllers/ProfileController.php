@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Profile\UpdatePasswordRequest;
 use App\Http\Requests\Profile\UpdatePhotoRequest;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Models\User;
@@ -85,10 +86,29 @@ class ProfileController extends Controller
     /**
      * Update the user's password.
      */
-    public function updatePassword(Request $request)
+    public function updatePassword(UpdatePasswordRequest $request): RedirectResponse
     {
-        // Placeholder - functionality to be implemented later
-        return redirect()->route('password.change')->with('success', 'Password updated successfully');
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        // Verify current password (plain text comparison since passwords are not hashed)
+        if ($request->input('current_password') !== $user->password) {
+            return back()
+                ->withErrors(['current_password' => 'Current password is incorrect.'])
+                ->withInput();
+        }
+
+        // Update password (stored as plain text)
+        User::where('id', $user->id)->update([
+            'password' => $request->input('password'),
+        ]);
+
+        return redirect()->route('password.change')
+            ->with('success', 'Your new password has been updated!');
     }
 
     /**

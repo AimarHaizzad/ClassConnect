@@ -40,12 +40,19 @@
             border: 1px solid #E0E0E0;
             border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.2s;
+            background: #f9f9f9;
+            color: #333;
+            transition: border-color 0.2s, background 0.2s;
         }
 
         .form-input:focus {
             outline: none;
+            background: white;
             border-color: #4CAF50;
+        }
+
+        .form-input::placeholder {
+            color: #999;
         }
 
         .form-actions {
@@ -74,13 +81,132 @@
             background: #45a049;
         }
 
-        .btn-secondary {
-            background: #E0E0E0;
-            color: #333;
+        .btn-update {
+            background: #4CAF50;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
         }
 
-        .btn-secondary:hover {
-            background: #D0D0D0;
+        .btn-update:hover {
+            background: #45a049;
+        }
+
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-modal.show {
+            display: flex;
+        }
+
+        .confirmation-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .confirmation-modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .confirmation-modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-no {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-no:hover {
+            background: #c82333;
+        }
+
+        .btn-yes {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-yes:hover {
+            background: #45a049;
+        }
+
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-modal.show {
+            display: flex;
+        }
+
+        .success-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .btn-ok {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .btn-ok:hover {
+            background: #0b7dda;
         }
 
         .error-message {
@@ -101,10 +227,99 @@
 
     <div class="password-container">
         <h1 class="password-title">Change Password</h1>
-        
+
+        @if($errors->any())
+            <div style="background: #ffebee; border: 2px solid #f44336; color: #c62828; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="password-card">
-            <p style="color: #666; text-align: center; padding: 40px 0;">Change Password functionality will be implemented here.</p>
+            <form method="POST" action="{{ route('password.update') }}" id="passwordForm">
+                @csrf
+                @method('PUT')
+
+                <div class="form-group">
+                    <label class="form-label" for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" class="form-input" placeholder="Enter Current Password" required>
+                    @error('current_password')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">New Password</label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter New Password" required>
+                    @error('password')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password_confirmation">Confirm New Password</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" class="form-input" placeholder="Enter Confirm New Password" required>
+                </div>
+
+                <button type="button" class="btn btn-update" onclick="showConfirmationModal()">Update Password</button>
+            </form>
         </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-modal-content">
+            <div class="confirmation-modal-title">Are you sure you want to update your password?</div>
+            <div class="confirmation-modal-buttons">
+                <button type="button" class="btn-no" onclick="closeConfirmationModal()">No</button>
+                <button type="button" class="btn-yes" onclick="submitPasswordForm()">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    @if(session('success'))
+    <div class="success-modal show" id="successModal">
+        <div class="success-modal-content">
+            <div class="success-modal-title">{{ session('success') }}</div>
+            <button type="button" class="btn-ok" onclick="closeSuccessModal()">OK</button>
+        </div>
+    </div>
+    @endif
+
+    <script>
+        function showConfirmationModal() {
+            document.getElementById('confirmationModal').classList.add('show');
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').classList.remove('show');
+        }
+
+        function submitPasswordForm() {
+            document.getElementById('passwordForm').submit();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('show');
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            const confirmationModal = document.getElementById('confirmationModal');
+            const successModal = document.getElementById('successModal');
+
+            if (confirmationModal && event.target === confirmationModal) {
+                closeConfirmationModal();
+            }
+
+            if (successModal && event.target === successModal) {
+                closeSuccessModal();
+            }
+        });
+    </script>
 @endsection
 
