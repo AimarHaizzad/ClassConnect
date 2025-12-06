@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Profile\UpdatePhotoRequest;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -12,7 +17,60 @@ class ProfileController extends Controller
      */
     public function index(): View
     {
-        return view('profiles.index');
+        $user = Auth::user();
+
+        return view('profiles.index', compact('user'));
+    }
+
+    /**
+     * Update the user's profile photo.
+     */
+    public function updatePhoto(UpdatePhotoRequest $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        // Delete old photo if exists
+        if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        // Upload new photo
+        $file = $request->file('photo');
+        $filename = 'profile_'.time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
+        $photoPath = $file->storeAs('profiles', $filename, 'public');
+
+        // Update user photo
+        User::where('id', $user->id)->update(['photo' => $photoPath]);
+
+        return redirect()->route('profiles.index')
+            ->with('success', 'Profile photo updated successfully!');
+    }
+
+    /**
+     * Delete the user's profile photo.
+     */
+    public function deletePhoto(): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        User::where('id', $user->id)->update(['photo' => null]);
+
+        return redirect()->route('profiles.index')
+            ->with('success', 'Profile photo deleted successfully!');
     }
 
     /**

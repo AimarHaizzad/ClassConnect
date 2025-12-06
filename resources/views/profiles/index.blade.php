@@ -80,6 +80,132 @@
             background: #C8E6C9;
         }
 
+        .profile-picture img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-modal.show {
+            display: flex;
+        }
+
+        .photo-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .photo-modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .photo-preview {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 20px auto;
+            overflow: hidden;
+            background: #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-upload-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .photo-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-save {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-save:hover {
+            background: #45a049;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
         .profile-info-table {
             width: 100%;
             border-collapse: collapse;
@@ -144,12 +270,22 @@
 
     <div class="profile-container">
         <h1 class="profile-title">Profile</h1>
-        
+
+        @if(session('success'))
+            <div class="success-message">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="profile-content">
             <!-- Profile Picture Card -->
             <div class="profile-card profile-picture-card">
                 <div class="profile-picture">
-                    <div class="profile-picture-placeholder">👤</div>
+                    @if($user->photo)
+                        <img src="{{ asset('storage/' . $user->photo) }}" alt="Profile Photo">
+                    @else
+                        <div class="profile-picture-placeholder">👤</div>
+                    @endif
                 </div>
                 <button class="change-photo-btn" onclick="handleChangePhoto()">Change Photo</button>
             </div>
@@ -159,27 +295,31 @@
                 <table class="profile-info-table">
                     <tr>
                         <td class="profile-info-label">Name</td>
-                        <td class="profile-info-value">Amira Sofea binti Safuan</td>
+                        <td class="profile-info-value">{{ $user->name }}</td>
                     </tr>
                     <tr>
                         <td class="profile-info-label">Username</td>
-                        <td class="profile-info-value">Amira Sofea</td>
+                        <td class="profile-info-value">{{ $user->username }}</td>
                     </tr>
                     <tr>
                         <td class="profile-info-label">Email</td>
-                        <td class="profile-info-value">amirasofea@gmail.com</td>
+                        <td class="profile-info-value">{{ $user->email }}</td>
                     </tr>
                     <tr>
                         <td class="profile-info-label">Phone Number</td>
-                        <td class="profile-info-value">011-45567889</td>
+                        <td class="profile-info-value">{{ $user->mobile_phone ?? 'N/A' }}</td>
                     </tr>
                     <tr>
                         <td class="profile-info-label">Date of birth</td>
-                        <td class="profile-info-value">25/08/1999</td>
+                        <td class="profile-info-value">{{ $user->date_of_birth ? $user->date_of_birth->format('d/m/Y') : 'N/A' }}</td>
                     </tr>
                     <tr>
                         <td class="profile-info-label">User ID</td>
-                        <td class="profile-info-value">TC10001</td>
+                        <td class="profile-info-value">{{ $user->user_id ?? 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="profile-info-label">User Type</td>
+                        <td class="profile-info-value">{{ ucfirst($user->user_type) }}</td>
                     </tr>
                 </table>
                 <button class="edit-profile-btn" onclick="handleEditProfile()">Edit Profile</button>
@@ -187,12 +327,91 @@
         </div>
     </div>
 
+    <!-- Photo Upload Modal -->
+    <div class="photo-modal" id="photoModal">
+        <div class="photo-modal-content">
+            <h2 class="photo-modal-title">Change Profile Photo</h2>
+            <form id="photoForm" method="POST" action="{{ route('profiles.update-photo') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="photo-preview" id="photoPreview">
+                    @if($user->photo)
+                        <img src="{{ asset('storage/' . $user->photo) }}" alt="Current Photo" id="previewImage">
+                    @else
+                        <div class="profile-picture-placeholder">👤</div>
+                    @endif
+                </div>
+                <input type="file" name="photo" id="photoInput" class="photo-upload-input" accept="image/*" required>
+                @error('photo')
+                    <div style="color: #dc3545; font-size: 14px; margin-bottom: 10px;">{{ $message }}</div>
+                @enderror
+                <div class="photo-modal-buttons">
+                    @if($user->photo)
+                        <button type="button" class="btn-delete" onclick="deletePhoto()">Delete Current Photo</button>
+                    @endif
+                    <button type="button" class="btn-cancel" onclick="closePhotoModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Save Photo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function handleChangePhoto() {
-            // Handle change photo functionality
-            console.log('Change photo clicked');
-            // TODO: Implement photo upload
+            document.getElementById('photoModal').classList.add('show');
         }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('show');
+            document.getElementById('photoInput').value = '';
+            resetPreview();
+        }
+
+        function resetPreview() {
+            const preview = document.getElementById('photoPreview');
+            const currentPhoto = @json($user->photo ? asset('storage/' . $user->photo) : null);
+
+            if (currentPhoto) {
+                preview.innerHTML = '<img src="' + currentPhoto + '" alt="Current Photo" id="previewImage">';
+            } else {
+                preview.innerHTML = '<div class="profile-picture-placeholder">👤</div>';
+            }
+        }
+
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview" id="previewImage">';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function deletePhoto() {
+            if (confirm('Are you sure you want to delete your profile photo?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("profiles.delete-photo") }}';
+
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = '_token';
+                csrf.value = '{{ csrf_token() }}';
+                form.appendChild(csrf);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('photoModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePhotoModal();
+            }
+        });
 
         function handleEditProfile() {
             // Handle edit profile functionality

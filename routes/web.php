@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
 
     // Profile Module Routes
     Route::resource('profiles', ProfileController::class);
+    Route::post('/profiles/photo', [ProfileController::class, 'updatePhoto'])->name('profiles.update-photo');
+    Route::post('/profiles/photo/delete', [ProfileController::class, 'deletePhoto'])->name('profiles.delete-photo');
     Route::get('/password/change', [ProfileController::class, 'showChangePassword'])->name('password.change');
     Route::put('/password/update', [ProfileController::class, 'updatePassword'])->name('password.update');
 
