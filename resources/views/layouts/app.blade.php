@@ -74,6 +74,7 @@
         .user-info {
             cursor: pointer;
             transition: opacity 0.2s;
+            position: relative;
         }
 
         .user-info:hover {
@@ -90,6 +91,44 @@
             justify-content: center;
             color: white;
             font-weight: bold;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .user-dropdown-item {
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            display: block;
+            transition: background 0.2s;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f0f0f0;
+        }
+
+        .user-dropdown-item.logout {
+            color: #dc3545;
+            border-top: 1px solid #eee;
+        }
+
+        .user-dropdown-item.logout:hover {
+            background: #fee;
         }
 
         /* Main Container */
@@ -200,16 +239,34 @@
     <div class="top-nav">
         <div class="hamburger">☰</div>
         <div class="logo">ClassConnect</div>
-        <div class="user-info" onclick="handleProfileClick()" style="cursor: pointer;">
+        @auth
+        <div class="user-info" onclick="toggleUserDropdown(event)" style="cursor: pointer;">
             <div class="user-details">
-                <div class="user-name">Amira Sofea</div>
+                <div class="user-name">{{ auth()->user()->name }}</div>
                 <div class="user-role">
-                    Teacher
+                    {{ ucfirst(auth()->user()->user_type) }}
                     <span>▼</span>
                 </div>
             </div>
-            <div class="user-avatar">AS</div>
+            <div class="user-avatar">
+                @php
+                    $name = auth()->user()->name;
+                    $parts = explode(' ', $name);
+                    $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : substr($parts[0], 1, 1)));
+                @endphp
+                {{ $initials }}
+            </div>
+            <div class="user-dropdown" id="userDropdown">
+                <a href="{{ route('profiles.index') }}" class="user-dropdown-item">Profile</a>
+                <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="user-dropdown-item logout" style="width: 100%; text-align: left; border: none; background: none; cursor: pointer; padding: 12px 20px;">
+                        Logout
+                    </button>
+                </form>
+            </div>
         </div>
+        @endauth
     </div>
 
     <!-- Main Container -->
@@ -258,10 +315,20 @@
     </div>
 
     <script>
-        function handleProfileClick() {
-            // Profile click handler - can be extended later
-            console.log('Profile clicked');
+        function toggleUserDropdown(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
         }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userInfo = document.querySelector('.user-info');
+            const dropdown = document.getElementById('userDropdown');
+            if (userInfo && dropdown && !userInfo.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         function toggleProfileMenu(event) {
             event.preventDefault();
