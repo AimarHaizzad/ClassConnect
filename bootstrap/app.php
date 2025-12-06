@@ -13,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Redirect guests trying to access protected routes to login
         $middleware->redirectGuestsTo(fn () => route('login'));
+
+        // Refresh session on activity for authenticated users
+        // This ensures sessions remain active during rapid navigation
+        $middleware->web(append: [
+            \App\Http\Middleware\RefreshSessionOnActivity::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

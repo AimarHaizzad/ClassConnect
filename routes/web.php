@@ -35,6 +35,18 @@ Route::post('/reset-password', [App\Http\Controllers\PasswordResetController::cl
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
+// Session Keep-Alive Route (for maintaining active sessions during rapid navigation)
+Route::get('/session/keep-alive', function () {
+    // Touch the session to refresh last_activity
+    session()->put('last_activity', now()->timestamp);
+    session()->save();
+
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toIso8601String(),
+    ]);
+})->middleware('auth')->name('session.keep-alive');
+
 // Protected Routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

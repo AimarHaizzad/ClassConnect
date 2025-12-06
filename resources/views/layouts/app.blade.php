@@ -339,6 +339,68 @@
                 submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
             }
         }
+
+        // Session Management: Keep session alive during rapid navigation
+        // This ensures sessions remain active for at least 30 minutes of activity
+        @auth
+        (function() {
+            let lastActivityTime = Date.now();
+            let sessionRefreshInterval = null;
+            const SESSION_REFRESH_INTERVAL = 5 * 60 * 1000; // Refresh every 5 minutes
+            const ACTIVITY_THRESHOLD = 30 * 1000; // Consider user active if activity within 30 seconds
+
+            // Track user activity
+            const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+            activityEvents.forEach(event => {
+                document.addEventListener(event, function() {
+                    lastActivityTime = Date.now();
+                }, { passive: true });
+            });
+
+            // Refresh session periodically if user is active
+            function refreshSessionIfActive() {
+                const timeSinceLastActivity = Date.now() - lastActivityTime;
+
+                // Only refresh if user has been active recently (within 30 seconds)
+                if (timeSinceLastActivity < ACTIVITY_THRESHOLD) {
+                    // Make a lightweight request to refresh session
+                    fetch('{{ route("session.keep-alive") }}', {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    }).catch(function(error) {
+                        // Silently fail - session refresh is best effort
+                        console.debug('Session refresh failed:', error);
+                    });
+                }
+            }
+
+            // Start periodic session refresh
+            sessionRefreshInterval = setInterval(refreshSessionIfActive, SESSION_REFRESH_INTERVAL);
+
+            // Refresh session on page navigation (beforeunload)
+            window.addEventListener('beforeunload', function() {
+                // Quick session touch before navigation
+                navigator.sendBeacon && navigator.sendBeacon('{{ route("session.keep-alive") }}');
+            });
+
+            // Refresh session on page visibility change (user switches tabs)
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden && Date.now() - lastActivityTime < ACTIVITY_THRESHOLD) {
+                    refreshSessionIfActive();
+                }
+            });
+
+            // Cleanup on page unload
+            window.addEventListener('unload', function() {
+                if (sessionRefreshInterval) {
+                    clearInterval(sessionRefreshInterval);
+                }
+            });
+        })();
+        @endauth
     </script>
 </body>
 </html>
