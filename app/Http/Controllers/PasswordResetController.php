@@ -142,3 +142,5 @@ class PasswordResetController extends Controller
             ->with('status', 'Your password has been reset successfully. Please login with your new password.');
     }
 }
+
+
