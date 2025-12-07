@@ -58,6 +58,15 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
 // Session Keep-Alive Route (for maintaining active sessions during rapid navigation)
 Route::get('/session/keep-alive', function () {
+    // Check if user is authenticated
+    if (! auth()->check()) {
+        return response()->json([
+            'status' => 'expired',
+            'message' => 'Session expired',
+            'timestamp' => now()->toIso8601String(),
+        ], 200); // Return 200 to avoid showing as error in browser
+    }
+
     // Touch the session to refresh last_activity
     session()->put('last_activity', now()->timestamp);
     session()->save();
@@ -66,7 +75,7 @@ Route::get('/session/keep-alive', function () {
         'status' => 'ok',
         'timestamp' => now()->toIso8601String(),
     ]);
-})->middleware('auth')->name('session.keep-alive');
+})->name('session.keep-alive');
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
@@ -102,7 +111,7 @@ Route::middleware('auth')->group(function () {
     })->name('discussions.index');
 
     Route::post('/discussions', [DiscussionController::class, 'store'])
-        ->middleware('throttle:5,1') // 5 discussions per minute
+        ->middleware('throttle:20,1') // 20 discussions per minute (increased for testing)
         ->name('discussions.store');
 
     Route::resource('discussions', DiscussionController::class)->except(['index', 'store']);

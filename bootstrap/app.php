@@ -21,5 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Handle CSRF token mismatch (419 errors)
+        $exceptions->render(function (Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Your session has expired. Please refresh the page and try again.'], 419);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['_token' => 'Your session has expired. Please refresh the page and try again.']);
+        });
     })->create();

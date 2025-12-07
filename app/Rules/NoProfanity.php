@@ -44,29 +44,47 @@ class NoProfanity implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        \Log::info('NoProfanity rule called', [
+            'attribute' => $attribute,
+            'value_length' => is_string($value) ? strlen($value) : 0,
+            'value_preview' => is_string($value) ? substr($value, 0, 50) : 'not_string',
+        ]);
+
         if (! is_string($value)) {
             return;
         }
 
         $lowercaseValue = strtolower($value);
-        $words = preg_split('/\s+/', $lowercaseValue);
+
+        // Remove punctuation and split into words
+        $normalizedText = preg_replace('/[^a-z0-9\s]/', ' ', $lowercaseValue);
+        $words = preg_split('/\s+/', $normalizedText, -1, PREG_SPLIT_NO_EMPTY);
 
         foreach ($this->bannedWords as $bannedWord) {
-            // Check for exact word matches and partial matches
+            // Check for exact word matches (whole word only)
             foreach ($words as $word) {
-                // Remove punctuation for comparison
-                $cleanWord = preg_replace('/[^a-z0-9]/', '', $word);
-
-                if ($cleanWord === $bannedWord || str_contains($cleanWord, $bannedWord)) {
-                    $fail('The :attribute contains inappropriate language. Please use respectful language in your posts.');
+                if ($word === $bannedWord) {
+                    \Log::warning('Profanity detected in NoProfanity rule', [
+                        'attribute' => $attribute,
+                        'banned_word' => $bannedWord,
+                        'matched_word' => $word,
+                    ]);
+                    $fail('⚠️ Warning: Your :attribute contains inappropriate language. Please use respectful language.');
 
                     return;
                 }
             }
 
-            // Also check if the banned word appears anywhere in the text
-            if (str_contains($lowercaseValue, $bannedWord)) {
-                $fail('The :attribute contains inappropriate language. Please use respectful language in your posts.');
+            // Also check if the banned word appears as a whole word in the text (with word boundaries)
+            // This catches cases where the word might be at the start/end or surrounded by punctuation
+            $pattern = '/\b'.preg_quote($bannedWord, '/').'\b/';
+            if (preg_match($pattern, $lowercaseValue)) {
+                \Log::warning('Profanity detected in NoProfanity rule (pattern match)', [
+                    'attribute' => $attribute,
+                    'banned_word' => $bannedWord,
+                    'pattern' => $pattern,
+                ]);
+                $fail('⚠️ Warning: Your :attribute contains inappropriate language. Please use respectful language.');
 
                 return;
             }

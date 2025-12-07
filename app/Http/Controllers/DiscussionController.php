@@ -54,6 +54,12 @@ class DiscussionController extends Controller
      */
     public function store(StoreDiscussionRequest $request): RedirectResponse
     {
+        // Log that we reached the controller (validation passed)
+        \Log::info('Discussion store method called', [
+            'title' => $request->title,
+            'content_length' => strlen($request->content ?? ''),
+        ]);
+
         $subjectId = session('selected_subject_id');
 
         if (! $subjectId) {

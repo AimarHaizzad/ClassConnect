@@ -43,9 +43,14 @@
                     name="title" 
                     value="{{ old('title', $discussion->title) }}"
                     required
-                    style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;"
+                    style="width: 100%; padding: 12px; border: 2px solid {{ $errors->has('title') ? '#dc3545' : '#e0e0e0' }}; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;"
                     placeholder="Enter discussion title..."
                 >
+                @error('title')
+                    <div style="color: #dc3545; font-size: 14px; margin-top: 6px;">
+                        {{ $message }}
+                    </div>
+                @enderror
             </div>
 
             <div style="margin-bottom: 24px;">
@@ -57,8 +62,13 @@
                     name="content" 
                     rows="10"
                     required
-                    style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; resize: vertical; transition: border-color 0.3s;"
+                    style="width: 100%; padding: 12px; border: 2px solid {{ $errors->has('content') ? '#dc3545' : '#e0e0e0' }}; border-radius: 8px; font-size: 16px; resize: vertical; transition: border-color 0.3s;"
                     placeholder="Write your discussion content here...">{{ old('content', $discussion->content) }}</textarea>
+                @error('content')
+                    <div style="color: #dc3545; font-size: 14px; margin-top: 6px;">
+                        {{ $message }}
+                    </div>
+                @enderror
             </div>
 
             <div style="margin-bottom: 24px;">

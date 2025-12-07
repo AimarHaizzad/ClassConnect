@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'ClassConnect') - High School Learning Platform</title>
     <style>
         * {
@@ -370,9 +371,29 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                         }
-                    }).catch(function(error) {
-                        // Silently fail - session refresh is best effort
-                        console.debug('Session refresh failed:', error);
+                    })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            // Non-OK responses are expected (e.g., 401, 429) - don't log as errors
+                            return { status: 'error', httpStatus: response.status };
+                        }
+                        return response.json().catch(function() {
+                            // If response isn't JSON, that's okay
+                            return { status: 'ok' };
+                        });
+                    })
+                    .then(function(data) {
+                        if (data && data.status === 'expired') {
+                            // Stop the interval if session expired
+                            if (sessionRefreshInterval) {
+                                clearInterval(sessionRefreshInterval);
+                                sessionRefreshInterval = null;
+                            }
+                        }
+                    })
+                    .catch(function(error) {
+                        // Silently ignore all errors - session refresh is best effort
+                        // Don't log anything to avoid console noise
                     });
                 }
             }
@@ -382,8 +403,14 @@
 
             // Refresh session on page navigation (beforeunload)
             window.addEventListener('beforeunload', function() {
-                // Quick session touch before navigation
-                navigator.sendBeacon && navigator.sendBeacon('{{ route("session.keep-alive") }}');
+                // Quick session touch before navigation - silently fail if it doesn't work
+                try {
+                    if (navigator.sendBeacon) {
+                        navigator.sendBeacon('{{ route("session.keep-alive") }}');
+                    }
+                } catch (e) {
+                    // Silently ignore errors
+                }
             });
 
             // Refresh session on page visibility change (user switches tabs)
