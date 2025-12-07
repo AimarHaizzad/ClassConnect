@@ -55,3 +55,5 @@ class RefreshSessionOnActivity
         return $response;
     }
 }
+
+
