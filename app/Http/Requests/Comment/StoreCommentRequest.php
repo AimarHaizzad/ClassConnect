@@ -25,6 +25,7 @@ class StoreCommentRequest extends FormRequest
         return [
             'content' => ['required', 'string', 'min:3', 'max:1000', new NoProfanity],
             'discussion_id' => ['required', 'exists:discussions,id'],
+            'parent_id' => ['nullable', 'exists:comments,id'],
             'photo' => [
                 'nullable',
                 'image',

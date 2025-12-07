@@ -110,7 +110,7 @@ class DiscussionController extends Controller
             return redirect()->route('subjects.select');
         }
 
-        $discussion->load(['user', 'subject', 'comments.user']);
+        $discussion->load(['user', 'subject', 'comments.user', 'comments.replies.user']);
 
         return view('discussions.show', compact('discussion'));
     }

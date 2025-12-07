@@ -132,71 +132,39 @@
                         Supported formats: JPEG, PNG, JPG, GIF, WEBP (Max: 2MB, 2000x2000px)
                     </p>
                 </div>
-                <button 
-                    type="submit"
-                    style="background: #795E2E; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;"
-                >
-                    Post Comment
-                </button>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button 
+                        type="submit"
+                        style="background: #795E2E; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#6a5127'" 
+                        onmouseout="this.style.background='#795E2E'"
+                    >
+                        Post Comment
+                    </button>
+                    @if($discussion->comments->whereNull('parent_id')->count() > 0)
+                        <button 
+                            type="button"
+                            onclick="toggleAllComments()"
+                            id="toggle-all-comments"
+                            style="background: #f5f5f5; color: #7a7a7a; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;"
+                            onmouseover="this.style.background='#e0e0e0'; this.style.color='#333'" 
+                            onmouseout="this.style.background='#f5f5f5'; this.style.color='#7a7a7a'"
+                        >
+                            <svg id="all-comments-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.3s;">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                            <span id="all-comments-text">Hide All Comments</span>
+                        </button>
+                    @endif
+                </div>
             </form>
 
             <!-- Comments List -->
-            @if($discussion->comments->count() > 0)
-                <div style="display: flex; flex-direction: column; gap: 20px;">
-                    @foreach($discussion->comments as $comment)
-                        @php
-                            $currentUserId = auth()->id() ?? \App\Models\User::first()->id ?? 1;
-                        @endphp
-                        <div style="padding: 24px; background: #ffffff; border-radius: 8px; border-left: 4px solid #795E2E; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s;" onmouseover="this.style.boxShadow='0 2px 6px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)'">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 14px;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #795E2E 0%, #6a5127 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(121, 94, 46, 0.2);">
-                                        {{ strtoupper(substr($comment->user->name ?? 'A', 0, 1)) }}
-                                    </div>
-                                    <div>
-                                        <strong style="color: #2c3e50; font-size: 16px; font-weight: 600; display: block; margin-bottom: 4px;">
-                                            {{ $comment->user->name ?? 'Anonymous' }}
-                                        </strong>
-                                        <span style="color: #7a7a7a; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="12" cy="12" r="10"></circle>
-                                                <polyline points="12 6 12 12 16 14"></polyline>
-                                            </svg>
-                                            {{ $comment->created_at->diffForHumans() }}
-                                        </span>
-                                    </div>
-                                </div>
-                                @if($comment->user_id == $currentUserId)
-                                    <div style="display: flex; gap: 8px;">
-                                        <a href="{{ route('comments.edit', $comment) }}" style="background: #795E2E; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(121, 94, 46, 0.2);" onmouseover="this.style.background='#6a5127'; this.style.boxShadow='0 2px 6px rgba(121, 94, 46, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#795E2E'; this.style.boxShadow='0 1px 3px rgba(121, 94, 46, 0.2)'; this.style.transform='translateY(0)'">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                            </svg>
-                                            Edit
-                                        </a>
-                                        <form action="{{ route('comments.destroy', $comment) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this comment? This action cannot be undone.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" style="background: #dc3545; color: white; padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(220, 53, 69, 0.2);" onmouseover="this.style.background='#c82333'; this.style.boxShadow='0 2px 6px rgba(220, 53, 69, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#dc3545'; this.style.boxShadow='0 1px 3px rgba(220, 53, 69, 0.2)'; this.style.transform='translateY(0)'">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                </svg>
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
-                            <div style="color: #2c3e50; line-height: 1.7; margin-bottom: 12px; font-size: 15px;">
-                                {!! nl2br(e($comment->content)) !!}
-                            </div>
-                            @if($comment->photo)
-                                <div style="margin-top: 16px;">
-                                    <img src="{{ asset('storage/' . $comment->photo) }}" alt="Comment Photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                                </div>
-                            @endif
+            @if($discussion->comments->whereNull('parent_id')->count() > 0)
+                <div id="all-comments-container" style="display: flex; flex-direction: column; gap: 20px;">
+                    @foreach($discussion->comments->whereNull('parent_id') as $comment)
+                        <div id="comment-wrapper-{{ $comment->id }}">
+                            @include('discussions.partials.comment', ['comment' => $comment, 'level' => 0])
                         </div>
                     @endforeach
                 </div>
@@ -205,6 +173,29 @@
                     No comments yet. Be the first to comment!
                 </p>
             @endif
+
+            <script>
+            function toggleAllComments() {
+                const container = document.getElementById('all-comments-container');
+                const toggleButton = document.getElementById('toggle-all-comments');
+                const commentsText = document.getElementById('all-comments-text');
+                const commentsIcon = document.getElementById('all-comments-icon');
+                
+                if (container && toggleButton && commentsText && commentsIcon) {
+                    const isHidden = container.style.display === 'none' || container.style.display === '';
+                    
+                    if (isHidden) {
+                        container.style.display = 'flex';
+                        commentsText.textContent = 'Hide All Comments';
+                        commentsIcon.style.transform = 'rotate(0deg)';
+                    } else {
+                        container.style.display = 'none';
+                        commentsText.textContent = 'Show All Comments';
+                        commentsIcon.style.transform = 'rotate(180deg)';
+                    }
+                }
+            }
+            </script>
         </div>
     </div>
 @endsection

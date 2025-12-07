@@ -32,6 +32,7 @@ class CommentController extends Controller
         Comment::create([
             'discussion_id' => $request->discussion_id,
             'user_id' => $userId,
+            'parent_id' => $request->parent_id,
             'content' => $request->content,
             'photo' => $photoPath,
         ]);
