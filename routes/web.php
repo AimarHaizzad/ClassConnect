@@ -18,6 +18,7 @@ Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 Route::get('/clear-session', function () {
     session()->flush();
     Auth::logout();
+
     return redirect('/')->with('message', 'Session cleared. Please login.');
 })->name('clear-session');
 
@@ -110,4 +111,7 @@ Route::middleware('auth')->group(function () {
     Route::post('comments', [CommentController::class, 'store'])
         ->middleware('throttle:10,1') // 10 comments per minute
         ->name('comments.store');
+    Route::get('comments/{comment}/edit', [CommentController::class, 'edit'])->name('comments.edit');
+    Route::put('comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
+    Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 });

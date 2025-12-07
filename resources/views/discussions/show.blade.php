@@ -81,7 +81,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('comments.store') }}" method="POST" style="margin-bottom: 30px;">
+            <form action="{{ route('comments.store') }}" method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
                 @csrf
                 <input type="hidden" name="discussion_id" value="{{ $discussion->id }}">
                 <div style="margin-bottom: 12px;">
@@ -91,6 +91,21 @@
                         required
                         style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; resize: vertical;"
                         placeholder="Write your comment here...">{{ old('content') }}</textarea>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label for="photo" style="display: block; margin-bottom: 6px; color: #666; font-size: 14px; font-weight: 500;">
+                        📷 Add Photo (Optional)
+                    </label>
+                    <input 
+                        type="file" 
+                        name="photo" 
+                        id="photo"
+                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                        style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;"
+                    >
+                    <p style="color: #999; font-size: 12px; margin-top: 4px;">
+                        Supported formats: JPEG, PNG, JPG, GIF, WEBP (Max: 2MB, 2000x2000px)
+                    </p>
                 </div>
                 <button 
                     type="submit"
@@ -104,6 +119,9 @@
             @if($discussion->comments->count() > 0)
                 <div style="display: flex; flex-direction: column; gap: 20px;">
                     @foreach($discussion->comments as $comment)
+                        @php
+                            $currentUserId = auth()->id() ?? \App\Models\User::first()->id ?? 1;
+                        @endphp
                         <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #795E2E;">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                                 <div>
@@ -114,10 +132,29 @@
                                         {{ $comment->created_at->diffForHumans() }}
                                     </span>
                                 </div>
+                                @if($comment->user_id == $currentUserId)
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="{{ route('comments.edit', $comment) }}" style="background: #795E2E; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">
+                                            ✏️ Edit
+                                        </a>
+                                        <form action="{{ route('comments.destroy', $comment) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this comment? This action cannot be undone.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="background: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                                                🗑️ Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                             </div>
-                            <div style="color: #333; line-height: 1.6;">
+                            <div style="color: #333; line-height: 1.6; margin-bottom: 12px;">
                                 {!! nl2br(e($comment->content)) !!}
                             </div>
+                            @if($comment->photo)
+                                <div style="margin-top: 12px;">
+                                    <img src="{{ asset('storage/' . $comment->photo) }}" alt="Comment Photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                </div>
+                            @endif
                         </div>
                     @endforeach
                 </div>
