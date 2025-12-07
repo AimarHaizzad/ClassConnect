@@ -33,10 +33,27 @@
         }
 
         .hamburger {
-            font-size: 24px;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
             margin-right: 20px;
             color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+
+        .hamburger:hover {
+            opacity: 0.7;
+        }
+
+        .hamburger svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
         }
 
         .logo {
@@ -148,6 +165,17 @@
             padding: 20px 0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+            opacity: 0;
+            width: 0;
+            margin-left: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         .nav-item {
@@ -181,7 +209,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .nav-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+        }
+
+        .nav-item.active .nav-icon svg {
+            stroke: white;
         }
 
         .nav-label {
@@ -189,8 +228,28 @@
         }
 
         .nav-arrow {
-            font-size: 12px;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #999;
+            transition: transform 0.3s;
+        }
+
+        .nav-arrow svg {
+            width: 12px;
+            height: 12px;
+            stroke: currentColor;
+            fill: none;
+        }
+
+        .nav-item.expanded .nav-arrow {
+            transform: rotate(90deg);
+        }
+
+        .nav-item.active .nav-arrow {
+            color: white;
         }
 
         .nav-submenu {
@@ -238,7 +297,13 @@
 <body>
     <!-- Top Navigation Bar -->
     <div class="top-nav">
-        <div class="hamburger">☰</div>
+        <div class="hamburger">
+            <svg viewBox="0 0 24 24">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </div>
         <div class="logo">ClassConnect</div>
         @auth
         <div class="user-info" onclick="toggleUserDropdown(event)" style="cursor: pointer;">
@@ -275,14 +340,29 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <a href="/dashboard" class="nav-item {{ request()->is('dashboard') ? 'active' : '' }}">
-                <div class="nav-icon">🖥️</div>
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                </div>
                 <div class="nav-label">Dashboard</div>
             </a>
 
             <div class="nav-item expandable {{ request()->is('profiles*') || request()->is('password*') ? 'expanded' : '' }}" onclick="toggleProfileMenu(event)">
-                <div class="nav-icon">👤</div>
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
                 <div class="nav-label">Profile</div>
-                <div class="nav-arrow">▶</div>
+                <div class="nav-arrow">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </div>
             </div>
             <div class="nav-submenu {{ request()->is('profiles*') || request()->is('password*') ? '' : '' }}" style="{{ request()->is('profiles*') || request()->is('password*') ? 'display: block;' : '' }}">
                 <a href="/profiles" class="nav-item {{ request()->is('profiles') && !request()->is('profiles/*') ? 'active' : '' }}">
@@ -294,17 +374,33 @@
             </div>
 
             <a href="/lessons" class="nav-item {{ request()->is('lessons*') ? 'active' : '' }}">
-                <div class="nav-icon">📚</div>
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        <line x1="8" y1="7" x2="18" y2="7"></line>
+                        <line x1="8" y1="11" x2="18" y2="11"></line>
+                        <line x1="8" y1="15" x2="14" y2="15"></line>
+                    </svg>
+                </div>
                 <div class="nav-label">Lesson</div>
             </a>
 
             <a href="/assignments" class="nav-item {{ request()->is('assignments*') ? 'active' : '' }}">
-                <div class="nav-icon">📁</div>
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
                 <div class="nav-label">Assignment</div>
             </a>
 
             <a href="/discussions" class="nav-item {{ request()->is('discussions*') || request()->is('subjects*') ? 'active' : '' }}">
-                <div class="nav-icon">💬</div>
+                <div class="nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
                 <div class="nav-label">Discussion</div>
             </a>
         </div>
@@ -316,6 +412,33 @@
     </div>
 
     <script>
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('hidden');
+                // Save sidebar state to localStorage
+                localStorage.setItem('sidebarHidden', sidebar.classList.contains('hidden'));
+            }
+        }
+
+        // Initialize sidebar state from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarHidden = localStorage.getItem('sidebarHidden') === 'true';
+            if (sidebar && sidebarHidden) {
+                sidebar.classList.add('hidden');
+            }
+        });
+
+        // Add click event to hamburger menu
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            if (hamburger) {
+                hamburger.addEventListener('click', toggleSidebar);
+            }
+        });
+
         function toggleUserDropdown(event) {
             event.stopPropagation();
             const dropdown = document.getElementById('userDropdown');

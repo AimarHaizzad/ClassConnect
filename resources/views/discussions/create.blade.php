@@ -28,18 +28,6 @@
             </div>
         @endif
 
-        {{-- Debug: Show if errors exist --}}
-        @if(config('app.debug'))
-            <div style="background: #e3f2fd; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 12px;">
-                <strong>Debug:</strong> Errors count: {{ $errors->count() }} | 
-                Has errors: {{ $errors->any() ? 'YES' : 'NO' }} |
-                @if($errors->any())
-                    Error keys: {{ implode(', ', array_keys($errors->toArray())) }} |
-                    All errors: {{ json_encode($errors->all()) }}
-                @endif
-            </div>
-        @endif
-
         {{-- Always show errors if they exist (except CSRF token errors) --}}
         @if($errors->any() && !$errors->has('_token'))
             <div id="validation-error-box" style="background: #ffebee; border: 6px solid #f44336; color: #c62828; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 8px 24px rgba(244, 67, 54, 0.5); animation: shake 0.8s; position: relative; z-index: 1000;">
