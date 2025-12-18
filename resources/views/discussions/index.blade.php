@@ -39,11 +39,23 @@
                 <div style="background: white; padding: 28px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; border: 1px solid #f0f0f0;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'; this.style.transform='translateY(0)'">
                     <div style="display: flex; justify-content: space-between; align-items: start; gap: 20px;">
                         <div style="flex: 1;">
-                            <h2 style="color: #2c3e50; margin: 0 0 12px 0; font-size: 22px; font-weight: 600; line-height: 1.3;">
-                                <a href="{{ route('discussions.show', $discussion) }}" style="color: #795E2E; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#5a4723'" onmouseout="this.style.color='#795E2E'">
-                                    {{ $discussion->title }}
-                                </a>
-                            </h2>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <h2 style="color: #2c3e50; margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3;">
+                                    <a href="{{ route('discussions.show', $discussion) }}" style="color: #795E2E; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='#5a4723'" onmouseout="this.style.color='#795E2E'">
+                                        {{ $discussion->title }}
+                                    </a>
+                                </h2>
+                                @if($discussion->class)
+                                    <span style="background: {{ ($isLecturer ?? false) || ($discussion->class === $userClass) ? '#795E2E' : '#999' }}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                        {{ $discussion->class }}
+                                    </span>
+                                @endif
+                                @if($discussion->class && !($isLecturer ?? false) && $discussion->class !== $userClass)
+                                    <span style="background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 500; border: 1px solid #ffc107;">
+                                        View Only
+                                    </span>
+                                @endif
+                            </div>
                             <p style="color: #555; margin: 0 0 16px 0; line-height: 1.7; font-size: 15px;">
                                 {{ Str::limit($discussion->content, 150) }}
                             </p>
@@ -76,8 +88,10 @@
                             </div>
                             @php
                                 $currentUserId = auth()->id() ?? \App\Models\User::first()->id ?? 1;
+                                // Lecturers can always interact, students only with their class
+                                $canInteract = ($isLecturer ?? false) || ($userClass && $discussion->class === $userClass) || ! $discussion->class;
                             @endphp
-                            @if($discussion->user_id == $currentUserId)
+                            @if($discussion->user_id == $currentUserId && $canInteract)
                                 <div style="display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0;">
                                     <a href="{{ route('discussions.edit', $discussion) }}" style="background: #795E2E; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;" onmouseover="this.style.background='#6a5127'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#795E2E'; this.style.transform='translateY(0)'">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'date_of_birth',
         'user_id',
         'user_type',
+        'class',
         'photo',
         'password',
         'failed_login_attempts',

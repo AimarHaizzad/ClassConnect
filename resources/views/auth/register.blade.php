@@ -462,7 +462,7 @@
                 <label class="form-label">Select User</label>
                 <div class="input-wrapper">
                     <span class="input-icon">▼</span>
-                    <select name="user_type" class="form-select">
+                    <select name="user_type" id="user_type" class="form-select">
                         <option value="">Select User</option>
                         <option value="student" {{ old('user_type') == 'student' ? 'selected' : '' }}>Student</option>
                         <option value="lecturer" {{ old('user_type') == 'lecturer' ? 'selected' : '' }}>Lecturer</option>
@@ -471,6 +471,30 @@
                 </div>
                 @error('user_type')
                     <div class="error-message">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group" id="class-field" style="display: none;">
+                <label class="form-label">Class <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏫</span>
+                    <select name="class" id="class" class="form-select">
+                        <option value="">Select Class</option>
+                        <option value="1A" {{ old('class') == '1A' ? 'selected' : '' }}>1A</option>
+                        <option value="1B" {{ old('class') == '1B' ? 'selected' : '' }}>1B</option>
+                    </select>
+                    <span class="select-arrow">▼</span>
+                </div>
+                <div class="help-text">Select your class section</div>
+                <div class="error-message" id="class-error" style="display: none;">
+                    <span>⚠️</span>
+                    <span id="class-error-text"></span>
+                </div>
+                @error('class')
+                    <div class="error-message">
+                        <span>⚠️</span>
+                        <span>{{ $message }}</span>
+                    </div>
                 @enderror
             </div>
 
@@ -726,6 +750,37 @@
                 console.error(message);
             }
         })();
+
+        // Toggle class field based on user type (outside IIFE so it's globally accessible)
+        function toggleClassField() {
+            const userType = document.getElementById('user_type');
+            const classField = document.getElementById('class-field');
+            const classSelect = document.getElementById('class');
+
+            if (!userType || !classField || !classSelect) {
+                return;
+            }
+
+            if (userType.value === 'student') {
+                classField.style.display = 'block';
+                classSelect.setAttribute('required', 'required');
+            } else {
+                classField.style.display = 'none';
+                classSelect.removeAttribute('required');
+                classSelect.value = '';
+            }
+        }
+
+        // Initialize on page load and attach event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const userTypeSelect = document.getElementById('user_type');
+            if (userTypeSelect) {
+                // Attach event listener
+                userTypeSelect.addEventListener('change', toggleClassField);
+                // Initialize on page load
+                toggleClassField();
+            }
+        });
     </script>
 </body>
 </html>
