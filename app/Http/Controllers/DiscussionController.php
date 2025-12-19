@@ -58,8 +58,10 @@ class DiscussionController extends Controller
         }
 
         $subject = Subject::findOrFail($subjectId);
+        $user = auth()->user();
+        $isLecturer = $user->user_type === 'lecturer';
 
-        return view('discussions.create', compact('subject'));
+        return view('discussions.create', compact('subject', 'isLecturer'));
     }
 
     /**
@@ -110,10 +112,16 @@ class DiscussionController extends Controller
             }
         }
 
+        // For lecturers: use selected class if provided, otherwise null
+        // For students: use their assigned class
+        $discussionClass = $isLecturer
+            ? ($request->input('class') ?: null)
+            : $userClass;
+
         $discussion = Discussion::create([
             'user_id' => $userId,
             'subject_id' => $subjectId,
-            'class' => $isLecturer ? null : $userClass, // Lecturers don't need a class
+            'class' => $discussionClass,
             'title' => $request->title,
             'content' => $request->content,
             'image' => $imagePath,
@@ -181,7 +189,7 @@ class DiscussionController extends Controller
 
         $discussion->load('subject');
 
-        return view('discussions.edit', compact('discussion'));
+        return view('discussions.edit', compact('discussion', 'isLecturer'));
     }
 
     /**
@@ -229,12 +237,20 @@ class DiscussionController extends Controller
             $imagePath = $file->storeAs('discussions', $filename, 'public');
         }
 
-        // Update discussion
-        $discussion->update([
+        // For lecturers: allow updating class, for students: keep their class
+        $updateData = [
             'title' => $request->title,
             'content' => $request->content,
             'image' => $imagePath,
-        ]);
+        ];
+
+        // Lecturers can change the class, students keep their assigned class
+        if ($isLecturer && $request->has('class')) {
+            $updateData['class'] = $request->input('class') ?: null;
+        }
+
+        // Update discussion
+        $discussion->update($updateData);
 
         return redirect()->route('discussions.show', $discussion)
             ->with('success', 'Discussion updated successfully!');
