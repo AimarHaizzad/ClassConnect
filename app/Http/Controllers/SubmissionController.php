@@ -105,6 +105,6 @@ class SubmissionController extends Controller
 
     $filename = 'submission_'.$submission->id.'.pdf';
 
-    return Storage::disk('local')->download($path, $filename);
+    return response()->download(Storage::disk('local')->path($path), $filename);
 }
 }

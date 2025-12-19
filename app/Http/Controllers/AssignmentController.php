@@ -242,6 +242,6 @@ class AssignmentController extends \App\Http\Controllers\Controller
         }
 
         $filename = 'assignment_'.$assignment->id.'_attachment.pdf';
-        return Storage::disk('local')->download($path, $filename);
+        return response()->download(storage_path('app/'.$path), $filename);
     }
 }

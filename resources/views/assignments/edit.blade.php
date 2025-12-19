@@ -12,6 +12,7 @@
     }
 
     $attachPath = $assignment->getAttribute('attachment_path') ?? null;
+    $subjects = $subjects ?? collect();
 @endphp
 
 <style>

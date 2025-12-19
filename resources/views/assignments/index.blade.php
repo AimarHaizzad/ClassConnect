@@ -162,7 +162,6 @@
                     $desc  = $a->getAttribute('description') ?? null;
                     $due   = $a->getAttribute('due_at') ?? null;
 
-                    // Student: find my submission from eager-loaded relationship (controller should load it)
                     $mySubmission = null;
                     if ($userType === 'student' && isset($a->submissions) && $a->submissions instanceof \Illuminate\Support\Collection) {
                         $mySubmission = $a->submissions->first();
@@ -176,7 +175,6 @@
                             {{ \Illuminate\Support\Str::limit($desc ?: 'No description provided.', 110) }}
                         </div>
 
-                        {{-- Student: show submission status here --}}
                         @if($userType === 'student' && $mySubmission)
                             <div class="muted" style="margin-top:6px;">
                                 <span class="badge">{{ ucfirst($mySubmission->status ?? 'submitted') }}</span>
@@ -246,12 +244,15 @@
                                     </a>
                                 @endif
 
+                                {{-- ✅ Two-stage delete confirmation modal --}}
                                 @if(Route::has('assignments.destroy'))
-                                    <form method="POST" action="{{ route('assignments.destroy', $id) }}"
-                                          onsubmit="return confirm('Delete this assignment?');" style="margin:0;">
+                                    <form id="delete-assignment-{{ $id }}" method="POST" action="{{ route('assignments.destroy', $id) }}" style="margin:0;">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-danger" type="submit">Delete</button>
+                                        <button class="btn btn-danger" type="button"
+                                                onclick="ccOpenDeleteModal(@json($title), 'delete-assignment-{{ $id }}')">
+                                            Delete
+                                        </button>
                                     </form>
                                 @endif
                             @endif
