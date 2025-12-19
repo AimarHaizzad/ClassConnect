@@ -1,144 +1,272 @@
-@extends('layouts.app') 
+{{-- resources/views/assignments/index.blade.php --}}
+@extends('layouts.app')
 
 @section('title', 'Assignments')
 
 @section('content')
-<div class="container py-4">
-    
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+@php
+    $assignments = $assignments ?? collect();
 
-    {{-- 
-        ---------------------------------------------------------
-        1. TEACHER INTERFACE (LIST CREATED ASSIGNMENTS)
-        Corresponds to Figure 5.3.3 functionality (viewing submissions summary)
-        ---------------------------------------------------------
-    --}}
-      @if(Auth::user()->isTeacher()) 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 style="color: #333;">Assignment Management (Teacher)</h1>
-            {{-- Button to go to the Create Assignment Form (Figure 5.3.1) --}}
-            <a href="{{ route('assignments.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Create New Assignment
-            </a>
+    $isPaginator =
+        $assignments instanceof \Illuminate\Contracts\Pagination\Paginator ||
+        $assignments instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
+    $list  = $isPaginator ? $assignments : collect($assignments);
+    $count = $isPaginator ? ($assignments->total() ?? $list->count()) : $list->count();
+
+    $userType = auth()->check() ? (auth()->user()->user_type ?? '') : '';
+@endphp
+
+<style>
+    .page-head{
+        display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap;
+        margin-bottom:18px;
+    }
+    .page-title{ font-size:22px; font-weight:800; color:#2d2d2d; }
+    .page-sub{ font-size:13px; color:#6b6b6b; margin-top:4px; }
+
+    .card{
+        background:#fff; border-radius:16px; padding:18px;
+        box-shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .toolbar{
+        display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+        margin-bottom:12px;
+    }
+
+    .search-box{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .input{
+        width:340px; max-width:100%;
+        padding:10px 12px; border-radius:10px; border:1px solid #ddd; background:#fff; outline:none;
+    }
+
+    .btn{
+        padding:10px 14px; border-radius:10px; border:none; cursor:pointer;
+        font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+        font-size:14px;
+    }
+    .btn-primary{ background:#795E2E; color:#fff; }
+    .btn-primary:hover{ opacity:.92; }
+    .btn-light{ background:#f2f2f2; color:#222; }
+    .btn-light:hover{ background:#eaeaea; }
+    .btn-danger{ background:#dc3545; color:#fff; }
+    .btn-danger:hover{ opacity:.92; }
+
+    .muted{ color:#777; font-size:13px; }
+
+    .flash{
+        padding:12px 14px; border-radius:12px; margin-bottom:12px;
+        background:#eaf6ea; border:1px solid #bfe3bf; color:#1f5f1f; font-weight:700;
+    }
+    .flash-error{
+        background:#fee; border:1px solid #f3b3b3; color:#8a1f1f;
+    }
+
+    table{ width:100%; border-collapse:collapse; margin-top:8px; }
+    th, td{
+        text-align:left; padding:12px 10px; border-bottom:1px solid #eee; vertical-align:top;
+        color:#2d2d2d; font-size:14px;
+    }
+    th{
+        font-size:12px; color:#666; text-transform:uppercase; letter-spacing:.3px;
+    }
+
+    .badge{
+        display:inline-block; padding:4px 10px; border-radius:999px;
+        background:#f2efdf; border:1px solid #e3ddc9;
+        font-size:12px; font-weight:800; color:#6a5226;
+        margin-right:6px;
+    }
+
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+    .empty{
+        padding:16px; border:1px dashed #cfc6ad; border-radius:14px;
+        background:#fffdf5; color:#6a5226; font-weight:800; margin-top:10px;
+    }
+
+    .pagination-wrap{ margin-top:14px; }
+</style>
+
+<div class="page-head">
+    <div>
+        <div class="page-title">Assignments</div>
+        <div class="page-sub">View, submit, and manage assignments.</div>
+    </div>
+
+    <div class="actions">
+        @if($userType === 'student' && Route::has('submissions.my'))
+            <a class="btn btn-light" href="{{ route('submissions.my') }}">My Submissions</a>
+        @endif
+
+        @if($userType === 'lecturer' && Route::has('assignments.create'))
+            <a class="btn btn-primary" href="{{ route('assignments.create') }}">+ Create Assignment</a>
+        @endif
+    </div>
+</div>
+
+@if(session('success'))
+    <div class="flash">{{ session('success') }}</div>
+@endif
+@if(session('error'))
+    <div class="flash flash-error">{{ session('error') }}</div>
+@endif
+
+<div class="card">
+    <div class="toolbar">
+        @if(Route::has('assignments.index'))
+            <form class="search-box" method="GET" action="{{ route('assignments.index') }}" style="margin:0;">
+                <input class="input" type="text" name="q" value="{{ request('q') }}"
+                       placeholder="Search assignment title / description...">
+                <button class="btn btn-light" type="submit">Search</button>
+                @if(request('q'))
+                    <a class="btn btn-light" href="{{ route('assignments.index') }}">Clear</a>
+                @endif
+            </form>
+        @else
+            <div class="muted">Search disabled (route not found).</div>
+        @endif
+
+        <div class="muted">
+            Total: <strong>{{ $count }}</strong>
         </div>
+    </div>
 
-        <table class="table table-hover table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Title & Class</th>
-                    <th>Due Date</th>
-                    <th>Submissions</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+    @if($list->count() === 0)
+        <div class="empty">
+            No assignments found.
+            <div class="muted" style="margin-top:6px;">
+                @if($userType === 'lecturer')
+                    Create one using “Create Assignment”.
+                @else
+                    Wait for your lecturer to publish assignments.
+                @endif
+            </div>
+        </div>
+    @else
+        <table>
+            <thead>
+            <tr>
+                <th style="width:45%;">Assignment</th>
+                <th style="width:20%;">Subject</th>
+                <th style="width:20%;">Due Date</th>
+                <th style="width:15%;">Actions</th>
+            </tr>
             </thead>
             <tbody>
-                {{-- Loop through assignments created by this teacher --}}
-                @forelse($assignments as $assignment)
+            @foreach($list as $a)
+                @php
+                    $id    = $a->getAttribute('id');
+                    $title = $a->getAttribute('title') ?? ('Assignment #' . $id);
+                    $desc  = $a->getAttribute('description') ?? null;
+                    $due   = $a->getAttribute('due_at') ?? null;
+
+                    // Student: find my submission from eager-loaded relationship (controller should load it)
+                    $mySubmission = null;
+                    if ($userType === 'student' && isset($a->submissions) && $a->submissions instanceof \Illuminate\Support\Collection) {
+                        $mySubmission = $a->submissions->first();
+                    }
+                @endphp
+
                 <tr>
-                    <td>{{ $assignment->title }}</td>
-                    <td>{{ \Carbon\Carbon::parse($assignment->due_date)->format('d M Y, h:i A') }}</td>
                     <td>
-                        {{-- submissions_count comes from the Controller's withCount() --}}
-                        <span class="badge bg-info">{{ $assignment->submissions_count }} Submissions</span>
-                    </td>
-                    <td>
-                        @if($assignment->due_date < now())
-                            <span class="badge bg-secondary">Closed</span>
-                        @else
-                            <span class="badge bg-success">Open</span>
+                        <div style="font-weight:900;">{{ $title }}</div>
+                        <div class="muted">
+                            {{ \Illuminate\Support\Str::limit($desc ?: 'No description provided.', 110) }}
+                        </div>
+
+                        {{-- Student: show submission status here --}}
+                        @if($userType === 'student' && $mySubmission)
+                            <div class="muted" style="margin-top:6px;">
+                                <span class="badge">{{ ucfirst($mySubmission->status ?? 'submitted') }}</span>
+                                Submitted: {{ optional($mySubmission->submitted_at)->format('d M Y, h:i A') }}
+                                @if(!empty($mySubmission->is_late))
+                                    <span class="badge">Late</span>
+                                @endif
+
+                                @if($mySubmission->relationLoaded('grade') && $mySubmission->grade)
+                                    <span class="badge">Marks: {{ $mySubmission->grade->marks }}</span>
+                                @endif
+                            </div>
                         @endif
                     </td>
+
                     <td>
-                        {{-- Link to view all submissions for grading (Figure 5.3.3) --}}
-                        <a href="{{ route('assignments.submissions', $assignment->id) }}" class="btn btn-sm btn-outline-dark me-2">
-                            Review Submissions
-                        </a>
-                        {{-- Link to edit assignment (Figure 5.3.2) --}}
-                        <a href="{{ route('assignments.edit', $assignment->id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        @if(isset($a->subject) && $a->subject)
+                            <span class="badge">{{ $a->subject->name }} ({{ $a->subject->code }})</span>
+                        @else
+                            <span class="badge">N/A</span>
+                        @endif
+                    </td>
+
+                    <td>
+                        @if(!empty($due))
+                            <span class="badge">
+                                {{ \Illuminate\Support\Carbon::parse($due)->format('d M Y, h:i A') }}
+                            </span>
+                        @else
+                            <span class="muted">Not set</span>
+                        @endif
+                    </td>
+
+                    <td>
+                        <div class="actions">
+                            @if(Route::has('assignments.show'))
+                                <a class="btn btn-light" href="{{ route('assignments.show', $id) }}">View</a>
+                            @endif
+
+                            {{-- Student actions --}}
+                            @if($userType === 'student' && Route::has('submissions.create'))
+                                @if($mySubmission)
+                                    @if(Route::has('submissions.download'))
+                                        <a class="btn btn-light" href="{{ route('submissions.download', $mySubmission->id) }}">
+                                            Download
+                                        </a>
+                                    @endif
+                                    <a class="btn btn-primary" href="{{ route('submissions.create', $id) }}">
+                                        Resubmit
+                                    </a>
+                                @else
+                                    <a class="btn btn-primary" href="{{ route('submissions.create', $id) }}">
+                                        Submit
+                                    </a>
+                                @endif
+                            @endif
+
+                            {{-- Lecturer actions --}}
+                            @if($userType === 'lecturer')
+                                @if(Route::has('assignments.edit'))
+                                    <a class="btn btn-light" href="{{ route('assignments.edit', $id) }}">Edit</a>
+                                @endif
+
+                                @if(Route::has('assignments.submissions'))
+                                    <a class="btn btn-primary" href="{{ route('assignments.submissions', $id) }}">
+                                        Submissions
+                                    </a>
+                                @endif
+
+                                @if(Route::has('assignments.destroy'))
+                                    <form method="POST" action="{{ route('assignments.destroy', $id) }}"
+                                          onsubmit="return confirm('Delete this assignment?');" style="margin:0;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-danger" type="submit">Delete</button>
+                                    </form>
+                                @endif
+                            @endif
+                        </div>
                     </td>
                 </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="text-center p-4">You have not created any assignments yet.</td>
-                </tr>
-                @endforelse
+            @endforeach
             </tbody>
         </table>
 
-    {{-- 
-        ---------------------------------------------------------
-        2. STUDENT INTERFACE (LIST AVAILABLE ASSIGNMENTS)
-        Corresponds to Figure 5.3.6: My Submission Interface
-        ---------------------------------------------------------
-    --}}
-    @else
-        <h1 style="color: #333;">My Assignments (Student)</h1>
-        
-        <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
-            {{-- Loop through all available assignments with student status --}}
-            @forelse($assignments as $assignment)
-            <div class="col">
-                <div class="card h-100 shadow-sm border-{{ 
-                    $assignment->submission_status == 'Checked' ? 'success' : 
-                    ($assignment->submission_status == 'Submitted' ? 'warning' : 'danger') 
-                }}">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            {{-- Assignment Title --}}
-                            <h5 class="card-title text-primary">{{ $assignment->title }}</h5>
-                            
-                            {{-- Submission Status Badge --}}
-                            <span class="badge bg-{{ 
-                                $assignment->submission_status == 'Checked' ? 'success' : 
-                                ($assignment->submission_status == 'Submitted' ? 'warning text-dark' : 'danger') 
-                            }} p-2">
-                                {{ $assignment->submission_status }}
-                            </span>
-                        </div>
-                        
-                        <p class="card-text text-muted small">
-                            Due: **{{ \Carbon\Carbon::parse($assignment->due_date)->format('d M Y, h:i A') }}**
-                        </p>
-                        
-                        <hr class="my-3">
-                        
-                        {{-- Action Buttons --}}
-                        @if($assignment->submission_status == 'Checked' || $assignment->submission_status == 'Submitted')
-                            {{-- View Submission Interface (Figure 5.3.9) --}}
-                            <a href="{{ route('assignments.show_submission', $assignment->id) }}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-eye"></i> View Submission
-                            </a>
-                        @else
-                            {{-- Add Submission Interface (Figure 5.3.7) --}}
-                            <a href="{{ route('assignments.show_submission_form', $assignment->id) }}" class="btn btn-sm btn-success">
-                                <i class="fas fa-upload"></i> Submit Assignment
-                            </a>
-                        @endif
-                        
-                        {{-- Toggle Description --}}
-                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#description-{{ $assignment->id }}" aria-expanded="false">
-                            <i class="fas fa-info-circle"></i> Details
-                        </button>
-
-                        <div class="collapse mt-3" id="description-{{ $assignment->id }}">
-                            <p class="small bg-light p-3 rounded">{{ $assignment->description }}</p>
-                        </div>
-                    </div>
-                </div>
+        @if($isPaginator && method_exists($assignments, 'links'))
+            <div class="pagination-wrap">
+                {{ $assignments->links() }}
             </div>
-            @empty
-            <div class="col-12">
-                <div class="alert alert-info text-center">There are no assignments available at this time.</div>
-            </div>
-            @endforelse
-        </div>
+        @endif
     @endif
-
 </div>
 @endsection

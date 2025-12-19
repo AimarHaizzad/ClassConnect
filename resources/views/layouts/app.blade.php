@@ -552,6 +552,233 @@
         })();
         @endauth
     </script>
+    <!-- ===== Two-stage Delete Confirmation Modal (Global) ===== -->
+<style>
+  .cc-modal-backdrop{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+  }
+  .cc-modal{
+    width: 100%;
+    max-width: 520px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+    overflow: hidden;
+  }
+  .cc-modal-header{
+    padding: 16px 18px;
+    border-bottom: 1px solid #eee;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .cc-modal-title{
+    font-weight: 900;
+    font-size: 18px;
+    color: #222;
+  }
+  .cc-modal-close{
+    border:none;
+    background: transparent;
+    font-size: 20px;
+    cursor:pointer;
+    color:#666;
+  }
+  .cc-modal-body{
+    padding: 16px 18px;
+    color:#333;
+  }
+  .cc-warn{
+    background:#fff7f7;
+    border:1px solid #f3c2c2;
+    padding: 10px 12px;
+    border-radius: 12px;
+    color:#8a1f1f;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .cc-modal-actions{
+    padding: 14px 18px;
+    border-top: 1px solid #eee;
+    display:flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .cc-btn{
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 14px;
+  }
+  .cc-btn-cancel{
+    background:#f2f2f2;
+    color:#222;
+  }
+  .cc-btn-primary{
+    background:#795E2E;
+    color:#fff;
+  }
+  .cc-btn-danger{
+    background:#dc3545;
+    color:#fff;
+  }
+  .cc-btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+  }
+  .cc-check{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size: 13px;
+    color:#444;
+    margin-top: 10px;
+  }
+</style>
+
+<div class="cc-modal-backdrop" id="ccDeleteModal" aria-hidden="true">
+  <div class="cc-modal" role="dialog" aria-modal="true" aria-labelledby="ccDeleteTitle">
+    <div class="cc-modal-header">
+      <div>
+        <div class="cc-modal-title" id="ccDeleteTitle">Delete Assignment</div>
+        <div style="font-size:12px; color:#777; margin-top:4px;" id="ccDeleteSub"></div>
+      </div>
+      <button class="cc-modal-close" type="button" onclick="ccCloseDeleteModal()">×</button>
+    </div>
+
+    <div class="cc-modal-body">
+      <!-- Step 1 -->
+      <div id="ccStep1">
+        <div>
+          Are you sure you want to delete <strong id="ccAssignmentName1"></strong>?
+        </div>
+        <div class="cc-warn">
+          This action cannot be undone.
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="ccStep2" style="display:none;">
+        <div style="font-weight:900; margin-bottom:6px;">Final confirmation</div>
+        <div>
+          You are about to permanently delete <strong id="ccAssignmentName2"></strong>.
+        </div>
+
+        <div class="cc-check">
+          <input type="checkbox" id="ccAcknowledge" />
+          <label for="ccAcknowledge">
+            I understand this will permanently delete the assignment and cannot be undone.
+          </label>
+        </div>
+
+        <div class="cc-warn">
+          Tip: Click <strong>Cancel</strong> if you clicked delete by mistake.
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-modal-actions">
+      <!-- Prominent Cancel button (always available) -->
+      <button class="cc-btn cc-btn-cancel" type="button" onclick="ccCloseDeleteModal()">Cancel</button>
+
+      <!-- Step 1 buttons -->
+      <button class="cc-btn cc-btn-primary" type="button" id="ccContinueBtn" onclick="ccGoStep2()">Continue</button>
+
+      <!-- Step 2 button -->
+      <button class="cc-btn cc-btn-danger" type="button" id="ccDeleteBtn" onclick="ccSubmitDelete()" style="display:none;" disabled>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let ccDeleteFormId = null;
+  let ccDeleteTitle = '';
+
+  function ccOpenDeleteModal(assignmentTitle, formId){
+    ccDeleteFormId = formId;
+    ccDeleteTitle = assignmentTitle || 'this assignment';
+
+    document.getElementById('ccAssignmentName1').textContent = ccDeleteTitle;
+    document.getElementById('ccAssignmentName2').textContent = ccDeleteTitle;
+    document.getElementById('ccDeleteSub').textContent = "Two-step confirmation required";
+
+    // reset to step 1
+    document.getElementById('ccStep1').style.display = 'block';
+    document.getElementById('ccStep2').style.display = 'none';
+
+    const ack = document.getElementById('ccAcknowledge');
+    ack.checked = false;
+
+    document.getElementById('ccContinueBtn').style.display = 'inline-block';
+    const delBtn = document.getElementById('ccDeleteBtn');
+    delBtn.style.display = 'none';
+    delBtn.disabled = true;
+
+    // show modal
+    const modal = document.getElementById('ccDeleteModal');
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    // close on ESC
+    document.addEventListener('keydown', ccEscCloseOnce);
+
+    // enable delete only when acknowledged
+    ack.onchange = function(){
+      delBtn.disabled = !ack.checked;
+    };
+  }
+
+  function ccGoStep2(){
+    document.getElementById('ccStep1').style.display = 'none';
+    document.getElementById('ccStep2').style.display = 'block';
+
+    document.getElementById('ccContinueBtn').style.display = 'none';
+    const delBtn = document.getElementById('ccDeleteBtn');
+    delBtn.style.display = 'inline-block';
+    delBtn.disabled = !document.getElementById('ccAcknowledge').checked;
+  }
+
+  function ccCloseDeleteModal(){
+    const modal = document.getElementById('ccDeleteModal');
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    ccDeleteFormId = null;
+    document.removeEventListener('keydown', ccEscCloseOnce);
+  }
+
+  function ccEscCloseOnce(e){
+    if (e.key === 'Escape') ccCloseDeleteModal();
+  }
+
+  function ccSubmitDelete(){
+    if (!ccDeleteFormId) return;
+
+    const form = document.getElementById(ccDeleteFormId);
+    if (!form) return;
+
+    form.submit();
+  }
+
+  // close if click outside dialog
+  document.addEventListener('click', function(e){
+    const modal = document.getElementById('ccDeleteModal');
+    if (!modal || modal.style.display !== 'flex') return;
+    if (e.target === modal) ccCloseDeleteModal();
+  });
+</script>
+
 </body>
 </html>
 

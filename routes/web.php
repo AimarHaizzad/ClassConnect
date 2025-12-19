@@ -10,7 +10,24 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\GradingController;
 
+//Assignments Routes
+Route::middleware('auth')->group(function () {
+    Route::resource('assignments', AssignmentController::class);
+ // Student submission
+    Route::get('assignments/{assignment}/submit', [SubmissionController::class, 'create'])->name('submissions.create');
+    Route::post('assignments/{assignment}/submit', [SubmissionController::class, 'store'])->name('submissions.store');
+    Route::get('my-submissions', [SubmissionController::class, 'my'])->name('submissions.my');
+    Route::get('submissions/{submission}/download', [SubmissionController::class, 'download'])->name('submissions.download');
+    Route::get('/assignments/{assignment}/download', [AssignmentController::class, 'download'])
+    ->name('assignments.download');
+    // Lecturer grading
+    Route::get('assignments/{assignment}/submissions', [GradingController::class, 'index'])->name('assignments.submissions');
+    Route::get('assignments/{assignment}/submissions/{submission}', [GradingController::class, 'show'])->name('grading.show');
+    Route::post('assignments/{assignment}/submissions/{submission}/grade', [GradingController::class, 'store'])->name('grading.store');
+});
 // Root route - shows login page for guests, redirects authenticated users to dashboard
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
