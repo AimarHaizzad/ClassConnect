@@ -18,8 +18,8 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::resource('profiles', ProfileController::class);
 
 // Lesson Module Routes
-Route::resource('lessons', LessonController::class);
-
+Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
 // Assignment Module Routes
 Route::resource('assignments', AssignmentController::class);
 
@@ -42,6 +42,8 @@ Route::post('/discussions', [DiscussionController::class, 'store'])
     ->name('discussions.store');
 
 Route::resource('discussions', DiscussionController::class)->except(['index', 'store']);
+
+
 
 // Comment Routes with rate limiting
 Route::post('comments', [CommentController::class, 'store'])

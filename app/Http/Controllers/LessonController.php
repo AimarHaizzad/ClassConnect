@@ -9,6 +9,10 @@ class LessonController extends Controller
     /**
      * Display a listing of the resource.
      */
+      public function lessonForm()
+    {
+        return view('lessons.lessonForm');
+    }
     public function index()
     {
         return view('lessons.index');
