@@ -43,9 +43,14 @@
                     name="title" 
                     value="{{ old('title', $discussion->title) }}"
                     required
-                    style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;"
+                    style="width: 100%; padding: 12px; border: 2px solid {{ $errors->has('title') ? '#dc3545' : '#e0e0e0' }}; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;"
                     placeholder="Enter discussion title..."
                 >
+                @error('title')
+                    <div style="color: #dc3545; font-size: 14px; margin-top: 6px;">
+                        {{ $message }}
+                    </div>
+                @enderror
             </div>
 
             <div style="margin-bottom: 24px;">
@@ -57,9 +62,39 @@
                     name="content" 
                     rows="10"
                     required
-                    style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; resize: vertical; transition: border-color 0.3s;"
+                    style="width: 100%; padding: 12px; border: 2px solid {{ $errors->has('content') ? '#dc3545' : '#e0e0e0' }}; border-radius: 8px; font-size: 16px; resize: vertical; transition: border-color 0.3s;"
                     placeholder="Write your discussion content here...">{{ old('content', $discussion->content) }}</textarea>
+                @error('content')
+                    <div style="color: #dc3545; font-size: 14px; margin-top: 6px;">
+                        {{ $message }}
+                    </div>
+                @enderror
             </div>
+
+            @if($isLecturer ?? false)
+            <div style="margin-bottom: 24px;">
+                <label for="class" style="display: block; color: #333; font-weight: 600; margin-bottom: 8px;">
+                    Select Class (Optional)
+                </label>
+                <select 
+                    id="class" 
+                    name="class" 
+                    style="width: 100%; padding: 12px; border: 2px solid {{ $errors->has('class') ? '#dc3545' : '#e0e0e0' }}; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; background: white;"
+                >
+                    <option value="">All Classes (No restriction)</option>
+                    <option value="1A" {{ old('class', $discussion->class) == '1A' ? 'selected' : '' }}>Class 1A</option>
+                    <option value="1B" {{ old('class', $discussion->class) == '1B' ? 'selected' : '' }}>Class 1B</option>
+                </select>
+                <p style="color: #666; font-size: 14px; margin-top: 6px;">
+                    Select a specific class for this discussion, or leave blank to make it accessible to all classes.
+                </p>
+                @error('class')
+                    <div style="color: #dc3545; font-size: 14px; margin-top: 6px;">
+                        {{ $message }}
+                    </div>
+                @enderror
+            </div>
+            @endif
 
             <div style="margin-bottom: 24px;">
                 <label for="image" style="display: block; color: #333; font-weight: 600; margin-bottom: 8px;">

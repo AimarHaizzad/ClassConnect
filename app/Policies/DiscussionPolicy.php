@@ -36,8 +36,14 @@ class DiscussionPolicy
      */
     public function update(User $user, Discussion $discussion): bool
     {
-        // Users can only update their own discussions
-        return $user->id === $discussion->user_id;
+        // Lecturers can update any discussion (they teach all classes)
+        if ($user->user_type === 'lecturer') {
+            return $user->id === $discussion->user_id;
+        }
+
+        // Students can only update their own discussions from their own class
+        return $user->id === $discussion->user_id
+            && $user->class === $discussion->class;
     }
 
     /**
@@ -45,8 +51,14 @@ class DiscussionPolicy
      */
     public function delete(User $user, Discussion $discussion): bool
     {
-        // Users can only delete their own discussions
-        return $user->id === $discussion->user_id;
+        // Lecturers can delete any discussion (they teach all classes)
+        if ($user->user_type === 'lecturer') {
+            return $user->id === $discussion->user_id;
+        }
+
+        // Students can only delete their own discussions from their own class
+        return $user->id === $discussion->user_id
+            && $user->class === $discussion->class;
     }
 
     /**

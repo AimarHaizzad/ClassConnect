@@ -32,6 +32,7 @@ class UpdateDiscussionRequest extends FormRequest
                 'max:2048',
                 'dimensions:max_width=2000,max_height=2000',
             ],
+            'class' => ['nullable', 'string', 'in:1A,1B'],
         ];
     }
 
@@ -41,11 +42,13 @@ class UpdateDiscussionRequest extends FormRequest
             'title.required' => 'Please provide a title for your discussion.',
             'title.min' => 'Title must be at least 3 characters.',
             'title.max' => 'Title cannot exceed 255 characters.',
-            'title.*' => '⚠️ Warning: Your title contains inappropriate language. Please use respectful language.',
+            'title.noprofanity' => '⚠️ Warning: Your title contains inappropriate language. Please use respectful language.',
+            'title' => '⚠️ Warning: Your title contains inappropriate language. Please use respectful language.',
             'content.required' => 'Please provide content for your discussion.',
             'content.min' => 'Content must be at least 10 characters.',
             'content.max' => 'Content cannot exceed 5000 characters.',
-            'content.*' => '⚠️ Warning: Your content contains inappropriate language. Please use respectful language.',
+            'content.noprofanity' => '⚠️ Warning: Your content contains inappropriate language. Please use respectful language.',
+            'content' => '⚠️ Warning: Your content contains inappropriate language. Please use respectful language.',
             'image.image' => 'The uploaded file must be an image.',
             'image.mimes' => 'Image must be jpeg, png, jpg, gif, or webp format.',
             'image.max' => 'Image size cannot exceed 2MB.',
