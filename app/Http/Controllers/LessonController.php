@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Lesson\StoreLessonRequest;
+use App\Models\Lesson;
 use Illuminate\Http\Request;
 
 class LessonController extends Controller
@@ -29,9 +31,20 @@ class LessonController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreLessonRequest $request)
     {
-        //
+        $request->validated();
+
+        if($request->hasFile('file_path')){
+            $filePath = $request->file('file_path')->store('lessons', 'public');
+            // Here you can save the file path to the database if needed
+        }
+        Lesson::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'file_path' => $filePath ?? null,
+            'subject_id' => $request->subject_id,
+        ]);
     }
 
     /**

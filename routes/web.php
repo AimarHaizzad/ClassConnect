@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+Route::post('/lessons/store', [LessonController::class, 'store'])->name('lessons.store');
 // Root route - shows login page for guests, redirects authenticated users to dashboard
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
@@ -52,7 +53,8 @@ Route::get('/forgot-password', [App\Http\Controllers\PasswordResetController::cl
 Route::post('/forgot-password', [App\Http\Controllers\PasswordResetController::class, 'sendResetLink'])->name('password.email');
 Route::get('/reset-password/{token}', [App\Http\Controllers\PasswordResetController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset.submit');
-
+Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
@@ -91,8 +93,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/password/update', [ProfileController::class, 'updatePassword'])->name('password.update');
 
 // Lesson Module Routes
-Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
-Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
+
+
+
 // Assignment Module Routes
 Route::resource('assignments', AssignmentController::class);
 
