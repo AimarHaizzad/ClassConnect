@@ -23,6 +23,10 @@ Route::middleware('auth')->group(function () {
     Route::get('submissions/{submission}/download', [SubmissionController::class, 'download'])->name('submissions.download');
     Route::get('/assignments/{assignment}/download', [AssignmentController::class, 'download'])
     ->name('assignments.download');
+    Route::get('submissions/{submission}/edit', [SubmissionController::class, 'edit'])->name('submissions.edit');
+    Route::put('submissions/{submission}', [SubmissionController::class, 'update'])->name('submissions.update');
+    Route::delete('submissions/{submission}', [SubmissionController::class, 'destroy'])->name('submissions.destroy');
+
     // Lecturer grading
     Route::get('assignments/{assignment}/submissions', [GradingController::class, 'index'])->name('assignments.submissions');
     Route::get('assignments/{assignment}/submissions/{submission}', [GradingController::class, 'show'])->name('grading.show');

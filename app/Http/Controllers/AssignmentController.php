@@ -222,26 +222,24 @@ class AssignmentController extends \App\Http\Controllers\Controller
     }
 
     public function download(Assignment $assignment)
-    {
-        if (!auth()->check()) {
-            abort(403);
-        }
+{
+    // Optional: restrict who can download
+    if (!auth()->check()) abort(403);
 
-        if (!Schema::hasColumn('assignments', 'attachment_path')) {
-            return back()->with('error', 'Attachment feature is not enabled.');
-        }
+    $path = $assignment->attachment_path;
 
-        $path = $assignment->attachment_path ?? null;
-
-        if (!$path) {
-            return back()->with('error', 'No attachment uploaded for this assignment.');
-        }
-
-        if (!Storage::disk('local')->exists($path)) {
-            return back()->with('error', 'Attachment file not found. Please re-upload it.');
-        }
-
-        $filename = 'assignment_'.$assignment->id.'_attachment.pdf';
-        return response()->download(storage_path('app/'.$path), $filename);
+    if (empty($path)) {
+        return back()->with('error', 'No attachment found for this assignment.');
     }
+
+    // IMPORTANT: check exists before downloading
+    if (!Storage::disk('local')->exists($path)) {
+        return back()->with('error', 'Attachment file not found. Please re-upload the attachment.');
+    }
+
+    $filename = 'assignment_'.$assignment->id.'_attachment.pdf';
+
+    // This avoids Windows path issues
+    return Storage::disk('local')->download($path, $filename);
+}
 }

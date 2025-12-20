@@ -87,6 +87,43 @@
     }
 
     .pagination-wrap{ margin-top:14px; }
+
+    /* ===== Delete Modal (Two-Stage Confirm) ===== */
+    .modal-overlay{
+        position:fixed; inset:0;
+        background:rgba(0,0,0,.35);
+        display:none;
+        align-items:center; justify-content:center;
+        z-index:2000;
+        padding:16px;
+    }
+    .modal-card{
+        width:100%;
+        max-width:520px;
+        background:#fff;
+        border-radius:16px;
+        padding:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+    .modal-title{
+        font-size:18px;
+        font-weight:900;
+        color:#2d2d2d;
+        margin-bottom:6px;
+    }
+    .modal-body{
+        color:#555;
+        font-size:14px;
+        line-height:1.45;
+        margin-bottom:14px;
+        white-space:pre-wrap;
+    }
+    .modal-actions{
+        display:flex;
+        gap:10px;
+        justify-content:flex-end;
+        flex-wrap:wrap;
+    }
 </style>
 
 <div class="page-head">
@@ -175,19 +212,23 @@
                             {{ \Illuminate\Support\Str::limit($desc ?: 'No description provided.', 110) }}
                         </div>
 
+                        {{-- Student: show submission status here --}}
                         @if($userType === 'student' && $mySubmission)
-                            <div class="muted" style="margin-top:6px;">
-                                <span class="badge">{{ ucfirst($mySubmission->status ?? 'submitted') }}</span>
-                                Submitted: {{ optional($mySubmission->submitted_at)->format('d M Y, h:i A') }}
-                                @if(!empty($mySubmission->is_late))
-                                    <span class="badge">Late</span>
-                                @endif
+                        <div class="muted" style="margin-top:6px;">
+                            <span class="badge">{{ ucfirst($mySubmission->status ?? 'submitted') }}</span>
+                            @if(($mySubmission->status ?? '') === 'graded')
+                                <span class="badge">Locked</span>
+                            @endif
+                            Submitted: {{ optional($mySubmission->submitted_at)->format('d M Y, h:i A') }}
+                            @if(!empty($mySubmission->is_late))
+                                <span class="badge">Late</span>
+                            @endif
+                            @if($mySubmission->relationLoaded('grade') && $mySubmission->grade)
+                                <span class="badge">Marks: {{ $mySubmission->grade->marks }}</span>
+                            @endif
+                        </div>
+                    @endif
 
-                                @if($mySubmission->relationLoaded('grade') && $mySubmission->grade)
-                                    <span class="badge">Marks: {{ $mySubmission->grade->marks }}</span>
-                                @endif
-                            </div>
-                        @endif
                     </td>
 
                     <td>
@@ -217,20 +258,31 @@
                             {{-- Student actions --}}
                             @if($userType === 'student' && Route::has('submissions.create'))
                                 @if($mySubmission)
+                                    @php
+                                        $locked = (($mySubmission->status ?? '') === 'graded')
+                                            || ($mySubmission->relationLoaded('grade') && $mySubmission->grade);
+                                    @endphp
+
                                     @if(Route::has('submissions.download'))
-                                        <a class="btn btn-light" href="{{ route('submissions.download', $mySubmission->id) }}">
+                                        <a class="btn btn-light"
+                                        href="{{ route('submissions.download', $mySubmission->id) }}?v={{ optional($mySubmission->updated_at)->timestamp ?? time() }}">
                                             Download
                                         </a>
                                     @endif
-                                    <a class="btn btn-primary" href="{{ route('submissions.create', $id) }}">
-                                        Resubmit
-                                    </a>
+
+                                    @if(Route::has('submissions.edit'))
+                                        <a class="btn {{ $locked ? 'btn-light' : 'btn-primary' }}"
+                                        href="{{ route('submissions.edit', $mySubmission->id) }}">
+                                            {{ $locked ? 'View (Graded)' : 'Edit' }}
+                                        </a>
+                                    @endif
                                 @else
                                     <a class="btn btn-primary" href="{{ route('submissions.create', $id) }}">
                                         Submit
                                     </a>
                                 @endif
                             @endif
+
 
                             {{-- Lecturer actions --}}
                             @if($userType === 'lecturer')
@@ -244,15 +296,25 @@
                                     </a>
                                 @endif
 
-                                {{-- ✅ Two-stage delete confirmation modal --}}
+                                {{-- IMPORTANT: Delete is now a button that triggers 2-step modal --}}
                                 @if(Route::has('assignments.destroy'))
-                                    <form id="delete-assignment-{{ $id }}" method="POST" action="{{ route('assignments.destroy', $id) }}" style="margin:0;">
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger"
+                                        data-delete-form="delete-assignment-{{ $id }}"
+                                        data-assignment-title="{{ $title }}"
+                                        onclick="openDeleteModal(this)"
+                                    >
+                                        Delete
+                                    </button>
+
+                                    {{-- Hidden real DELETE form --}}
+                                    <form id="delete-assignment-{{ $id }}"
+                                          method="POST"
+                                          action="{{ route('assignments.destroy', $id) }}"
+                                          style="display:none;">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-danger" type="button"
-                                                onclick="ccOpenDeleteModal(@json($title), 'delete-assignment-{{ $id }}')">
-                                            Delete
-                                        </button>
                                     </form>
                                 @endif
                             @endif
@@ -270,4 +332,91 @@
         @endif
     @endif
 </div>
+
+{{-- Two-stage confirmation modal --}}
+<div class="modal-overlay" id="deleteModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+        <div class="modal-title" id="deleteModalTitle">Confirm delete</div>
+        <div class="modal-body" id="deleteModalBody"></div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn btn-light" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn btn-light" id="deleteContinueBtn" onclick="deleteModalNext()">Continue</button>
+            <button type="button" class="btn btn-danger" id="deleteFinalBtn" onclick="confirmDelete()" style="display:none;">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let _deleteFormId = null;
+    let _deleteTitle = '';
+    let _deleteStage = 1;
+
+    function openDeleteModal(btn){
+        _deleteFormId = btn.dataset.deleteForm || null;
+        _deleteTitle  = btn.dataset.assignmentTitle || 'this assignment';
+        _deleteStage  = 1;
+
+        renderDeleteModal();
+
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function renderDeleteModal(){
+        const titleEl = document.getElementById('deleteModalTitle');
+        const bodyEl  = document.getElementById('deleteModalBody');
+        const contBtn = document.getElementById('deleteContinueBtn');
+        const finalBtn= document.getElementById('deleteFinalBtn');
+
+        if (_deleteStage === 1){
+            titleEl.textContent = 'Confirm deletion';
+            bodyEl.textContent  = `Are you sure you want to delete "${_deleteTitle}"?`;
+            contBtn.style.display = 'inline-flex';
+            finalBtn.style.display = 'none';
+        } else {
+            titleEl.textContent = 'Delete permanently';
+            bodyEl.textContent  = `This action cannot be undone.\n\nClick "Delete" to permanently remove "${_deleteTitle}".`;
+            contBtn.style.display = 'none';
+            finalBtn.style.display = 'inline-flex';
+        }
+    }
+
+    function deleteModalNext(){
+        _deleteStage = 2;
+        renderDeleteModal();
+    }
+
+    function confirmDelete(){
+        if (!_deleteFormId) return;
+        const form = document.getElementById(_deleteFormId);
+        if (form) form.submit();
+    }
+
+    function closeDeleteModal(){
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+
+        _deleteFormId = null;
+        _deleteTitle  = '';
+        _deleteStage  = 1;
+    }
+
+    // Close modal when clicking outside card
+    document.addEventListener('click', function(e){
+        const modal = document.getElementById('deleteModal');
+        if (modal.style.display === 'flex' && e.target === modal) {
+            closeDeleteModal();
+        }
+    });
+
+    // ESC closes modal
+    document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape') closeDeleteModal();
+    });
+</script>
 @endsection

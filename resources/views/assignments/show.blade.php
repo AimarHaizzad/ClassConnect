@@ -36,6 +36,44 @@
     .btn-primary { background:#795E2E; color:#fff; }
     .btn-light { background:#f2f2f2; color:#222; }
     .btn-danger { background:#dc3545; color:#fff; }
+
+    /* ---- Custom delete modal (same style behavior as your 2nd pic) ---- */
+    .cc-overlay{
+        position:fixed; inset:0;
+        background:rgba(0,0,0,.35);
+        display:none;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+        z-index:9999;
+    }
+    .cc-overlay.show{ display:flex; }
+    .cc-modal{
+        width:min(640px, 100%);
+        background:#fff;
+        border-radius:16px;
+        padding:20px;
+        box-shadow:0 20px 60px rgba(0,0,0,.25);
+    }
+    .cc-modal h3{
+        margin:0 0 6px 0;
+        font-size:20px;
+        color:#2d2d2d;
+        font-weight:900;
+    }
+    .cc-modal p{
+        margin:0 0 16px 0;
+        color:#555;
+        font-size:14px;
+        line-height:1.4;
+    }
+    .cc-modal-actions{
+        display:flex;
+        justify-content:flex-end;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:8px;
+    }
 </style>
 
 <div class="wrap">
@@ -69,25 +107,54 @@
         </div>
 
         <div class="section">
-    <h4>Attachment</h4>
-    <div class="box">
-        @if(!empty($attachPath) && Route::has('assignments.download'))
-            <div class="muted" style="margin-bottom:10px;">Attachment is available.</div>
-            <a class="btn btn-light" href="{{ route('assignments.download', $id) }}">Download PDF</a>
-        @else
-            <div class="muted">No attachment uploaded.</div>
-        @endif
-    </div>
-</div>
+            <h4>Attachment</h4>
+            <div class="box">
+                @if(!empty($attachPath))
+                    <div class="muted" style="margin-bottom:10px;">Attachment is available.</div>
 
+                    @if(Route::has('assignments.download'))
+                        <a class="btn btn-light" href="{{ route('assignments.download', $id) }}">Download PDF</a>
+                    @else
+                        <div class="muted">Download is currently unavailable.</div>
+                    @endif
+                @else
+                    <div class="muted">No attachment uploaded.</div>
+                @endif
+            </div>
+        </div>
 
         <div class="actions">
             <a class="btn btn-light" href="{{ route('assignments.index') }}">Back</a>
 
             {{-- Student actions --}}
-            @if($userType === 'student' && Route::has('submissions.create'))
-                <a class="btn btn-primary" href="{{ route('submissions.create', $id) }}">Submit / Resubmit</a>
+            @if($userType === 'student')
+                @php
+                    $mySubmission = \App\Models\Submission::with('grade')
+                        ->where('assignment_id', $id)
+                        ->where('student_id', auth()->id())
+                        ->first();
+
+                    $locked = $mySubmission && ((($mySubmission->status ?? '') === 'graded') || (bool)$mySubmission->grade);
+                @endphp
+
+                @if($mySubmission)
+                    @if(Route::has('submissions.download'))
+                        <a class="btn btn-light" href="{{ route('submissions.download', $mySubmission->id) }}">Download My Submission</a>
+                    @endif
+
+                    @if(Route::has('submissions.edit'))
+                        <a class="btn {{ $locked ? 'btn-light' : 'btn-primary' }}"
+                        href="{{ route('submissions.edit', $mySubmission->id) }}">
+                            {{ $locked ? 'View (Graded)' : 'Edit Submission' }}
+                        </a>
+                    @endif
+                @else
+                    @if(Route::has('submissions.create'))
+                        <a class="btn btn-primary" href="{{ route('submissions.create', $id) }}">Submit</a>
+                    @endif
+                @endif
             @endif
+
 
             {{-- Lecturer actions --}}
             @if($userType === 'lecturer')
@@ -100,15 +167,71 @@
                 @endif
 
                 @if(Route::has('assignments.destroy'))
-                    <form method="POST" action="{{ route('assignments.destroy', $id) }}" style="margin:0;"
-                          onsubmit="return confirm('Delete this assignment?');">
+                    {{-- IMPORTANT: button is type="button" so it doesn't submit immediately --}}
+                    <form id="deleteForm" method="POST" action="{{ route('assignments.destroy', $id) }}" style="margin:0;">
                         @csrf
                         @method('DELETE')
-                        <button class="btn btn-danger" type="submit">Delete</button>
+                        <button id="openDeleteModalBtn" class="btn btn-danger" type="button">Delete</button>
                     </form>
                 @endif
             @endif
         </div>
     </div>
 </div>
+
+{{-- Delete Modal --}}
+<div id="confirmDeleteOverlay" class="cc-overlay" aria-hidden="true">
+    <div class="cc-modal" role="dialog" aria-modal="true" aria-labelledby="ccModalTitle">
+        <h3 id="ccModalTitle">Confirm deletion</h3>
+        <p>Are you sure you want to delete "{{ $title }}"?</p>
+
+        <div class="cc-modal-actions">
+            <button type="button" class="btn btn-light" id="cancelDeleteBtn">Cancel</button>
+            <button type="button" class="btn btn-danger" id="continueDeleteBtn">Continue</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const openBtn = document.getElementById('openDeleteModalBtn');
+        const overlay = document.getElementById('confirmDeleteOverlay');
+        const cancelBtn = document.getElementById('cancelDeleteBtn');
+        const continueBtn = document.getElementById('continueDeleteBtn');
+        const form = document.getElementById('deleteForm');
+
+        if (!openBtn || !overlay || !cancelBtn || !continueBtn || !form) return;
+
+        function openModal() {
+            overlay.classList.add('show');
+            overlay.setAttribute('aria-hidden', 'false');
+            cancelBtn.focus();
+        }
+
+        function closeModal() {
+            overlay.classList.remove('show');
+            overlay.setAttribute('aria-hidden', 'true');
+            openBtn.focus();
+        }
+
+        openBtn.addEventListener('click', openModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Click outside modal closes it
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeModal();
+        });
+
+        // ESC closes modal
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && overlay.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        continueBtn.addEventListener('click', function () {
+            form.submit();
+        });
+    })();
+</script>
 @endsection

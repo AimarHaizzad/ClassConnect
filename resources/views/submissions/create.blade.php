@@ -17,16 +17,22 @@
     .error { color:#b00020; font-size:13px; margin-top:6px; }
     .badge { display:inline-block; padding:4px 10px; border-radius:999px; background:#f2efdf; border:1px solid #e3ddc9; font-size:12px; font-weight:800; color:#6a5226; }
     .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    .flash{ padding:12px 14px; border-radius:12px; margin-bottom:12px; font-weight:700; }
+    .flash-err{ background:#ffecec; border:1px solid #f3bcbc; color:#8a0f0f; }
 </style>
 
 <div class="wrap">
+    @if(session('error'))
+        <div class="flash flash-err">{{ session('error') }}</div>
+    @endif
+
     <div class="card">
         <div class="title">Submit Assignment</div>
         <div class="muted">
             <div><strong>Title:</strong> {{ $assignment->title }}</div>
             <div><strong>Subject:</strong>
-                {{ optional($assignment->subject)->name ?? 'N/A' }}
-                @if(optional($assignment->subject)->code) ({{ $assignment->subject->code }}) @endif
+                {{ $assignment->subject?->name ?? 'N/A' }}
+                @if($assignment->subject?->code) ({{ $assignment->subject->code }}) @endif
             </div>
             <div><strong>Due:</strong>
                 @if($assignment->due_at) <span class="badge">{{ $assignment->due_at->format('d M Y, h:i A') }}</span>
@@ -34,13 +40,6 @@
                 @endif
             </div>
         </div>
-
-        @if($existing)
-            <div class="muted" style="margin-bottom:12px;">
-                You have already submitted on <strong>{{ optional($existing->submitted_at)->format('d M Y, h:i A') }}</strong>.
-                Uploading again will <strong>replace</strong> the previous file.
-            </div>
-        @endif
 
         <form method="POST" action="{{ route('submissions.store', $assignment->id) }}" enctype="multipart/form-data">
             @csrf
