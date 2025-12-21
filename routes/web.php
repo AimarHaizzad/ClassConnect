@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\GradingController;
 
-<<<<<<< HEAD
 //Assignments Routes
 Route::middleware('auth')->group(function () {
     Route::resource('assignments', AssignmentController::class);
@@ -33,9 +32,6 @@ Route::middleware('auth')->group(function () {
     Route::get('assignments/{assignment}/submissions/{submission}', [GradingController::class, 'show'])->name('grading.show');
     Route::post('assignments/{assignment}/submissions/{submission}/grade', [GradingController::class, 'store'])->name('grading.store');
 });
-=======
-Route::post('/lessons/store', [LessonController::class, 'store'])->name('lessons.store');
->>>>>>> 1e6bbe3924f44904da4cdb5fe80090f04dbbbdc3
 // Root route - shows login page for guests, redirects authenticated users to dashboard
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
