@@ -23,7 +23,19 @@
         <div style="background: white; padding: 32px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 30px; border: 1px solid #f0f0f0;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px; gap: 20px;">
                 <div style="flex: 1;">
-                    <h1 style="color: #2c3e50; margin: 0 0 16px 0; font-size: 32px; font-weight: 700; line-height: 1.2;">{{ $discussion->title }}</h1>
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <h1 style="color: #2c3e50; margin: 0; font-size: 32px; font-weight: 700; line-height: 1.2;">{{ $discussion->title }}</h1>
+                        @if($discussion->class)
+                            <span style="background: {{ $canInteract ? '#795E2E' : '#999' }}; color: white; padding: 6px 16px; border-radius: 16px; font-size: 14px; font-weight: 600;">
+                                {{ $discussion->class }}
+                            </span>
+                        @endif
+                        @if(!$canInteract)
+                            <span style="background: #fff3cd; color: #856404; padding: 6px 16px; border-radius: 16px; font-size: 13px; font-weight: 500; border: 1px solid #ffc107;">
+                                🔒 View Only - Not Your Class
+                            </span>
+                        @endif
+                    </div>
                     <div style="display: flex; flex-wrap: wrap; gap: 20px; color: #7a7a7a; font-size: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0;">
                         <span style="display: flex; align-items: center; gap: 8px; font-weight: 500;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -44,7 +56,7 @@
                 @php
                     $currentUserId = auth()->id() ?? \App\Models\User::first()->id ?? 1;
                 @endphp
-                @if($discussion->user_id == $currentUserId)
+                @if($discussion->user_id == $currentUserId && $canInteract)
                     <div style="display: flex; gap: 10px; flex-shrink: 0;">
                         <a href="{{ route('discussions.edit', $discussion) }}" style="background: #795E2E; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(121, 94, 46, 0.2);" onmouseover="this.style.background='#6a5127'; this.style.boxShadow='0 4px 8px rgba(121, 94, 46, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#795E2E'; this.style.boxShadow='0 2px 4px rgba(121, 94, 46, 0.2)'; this.style.transform='translateY(0)'">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -84,7 +96,21 @@
             </h2>
 
             <!-- Add Comment Form -->
-            @if($errors->any())
+            @if(!$canInteract && !($isLecturer ?? false))
+                <div style="background: #fff3cd; border: 2px solid #ffc107; color: #856404; padding: 16px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">🔒</span>
+                        <div>
+                            <strong style="font-size: 16px;">Read-Only Access</strong>
+                            <p style="margin: 8px 0 0 0; font-size: 14px;">
+                                This discussion belongs to class <strong>{{ $discussion->class }}</strong>. You can view it but cannot comment or interact since you belong to class <strong>{{ $userClass }}</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($canInteract && $errors->any())
                 <div style="background: #fff3cd; border: 2px solid #ffc107; color: #856404; padding: 16px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                         <span style="font-size: 24px;">⚠️</span>
@@ -101,6 +127,7 @@
                 </div>
             @endif
 
+            @if($canInteract)
             <form action="{{ route('comments.store') }}" method="POST" enctype="multipart/form-data" style="margin-bottom: 30px;">
                 @csrf
                 <input type="hidden" name="discussion_id" value="{{ $discussion->id }}">
@@ -158,13 +185,14 @@
                     @endif
                 </div>
             </form>
+            @endif
 
             <!-- Comments List -->
             @if($discussion->comments->whereNull('parent_id')->count() > 0)
                 <div id="all-comments-container" style="display: flex; flex-direction: column; gap: 20px;">
                     @foreach($discussion->comments->whereNull('parent_id') as $comment)
                         <div id="comment-wrapper-{{ $comment->id }}">
-                            @include('discussions.partials.comment', ['comment' => $comment, 'level' => 0])
+                            @include('discussions.partials.comment', ['comment' => $comment, 'level' => 0, 'canInteract' => $canInteract, 'isLecturer' => $isLecturer ?? false])
                         </div>
                     @endforeach
                 </div>

@@ -32,6 +32,7 @@ class UpdateDiscussionRequest extends FormRequest
                 'max:2048',
                 'dimensions:max_width=2000,max_height=2000',
             ],
+            'class' => ['nullable', 'string', 'in:1A,1B'],
         ];
     }
 

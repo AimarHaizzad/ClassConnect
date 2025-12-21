@@ -1,5 +1,6 @@
 @php
     $currentUserId = auth()->id() ?? \App\Models\User::first()->id ?? 1;
+    $canInteract = $canInteract ?? true; // Default to true if not passed
 @endphp
 
 <div id="comment-{{ $comment->id }}" style="padding: 24px; background: #ffffff; border-radius: 8px; border-left: 4px solid #795E2E; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s;" onmouseover="this.style.boxShadow='0 2px 6px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)'">
@@ -24,7 +25,7 @@
                 </span>
             </div>
         </div>
-        @if($comment->user_id == $currentUserId)
+        @if($comment->user_id == $currentUserId && $canInteract)
             <div style="display: flex; gap: 8px;">
                 <a href="{{ route('comments.edit', $comment) }}" style="background: #795E2E; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(121, 94, 46, 0.2);" onmouseover="this.style.background='#6a5127'; this.style.boxShadow='0 2px 6px rgba(121, 94, 46, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#795E2E'; this.style.boxShadow='0 1px 3px rgba(121, 94, 46, 0.2)'; this.style.transform='translateY(0)'">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -58,12 +59,14 @@
 
     <!-- Reply Button and Replies Toggle -->
     <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; display: flex; align-items: center; gap: 16px;">
+        @if($canInteract)
         <button onclick="toggleReplyForm({{ $comment->id }})" style="background: none; border: none; color: #795E2E; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
             Reply
         </button>
+        @endif
         @if($comment->replies->count() > 0)
             <button onclick="toggleReplies({{ $comment->id }})" id="toggle-replies-{{ $comment->id }}" style="background: none; border: none; color: #7a7a7a; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#795E2E'; this.style.background='#f5f5f5'" onmouseout="this.style.color='#7a7a7a'; this.style.background='none'">
                 <svg id="replies-icon-{{ $comment->id }}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.3s; transform: rotate(180deg);">
@@ -114,7 +117,7 @@
     @if($comment->replies->count() > 0)
         <div id="replies-container-{{ $comment->id }}" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0;">
             @foreach($comment->replies as $reply)
-                @include('discussions.partials.comment', ['comment' => $reply, 'level' => $level + 1])
+                @include('discussions.partials.comment', ['comment' => $reply, 'level' => $level + 1, 'canInteract' => $canInteract])
             @endforeach
         </div>
     @endif

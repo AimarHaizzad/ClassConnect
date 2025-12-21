@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\GradingController;
 
+<<<<<<< HEAD
 //Assignments Routes
 Route::middleware('auth')->group(function () {
     Route::resource('assignments', AssignmentController::class);
@@ -32,6 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::get('assignments/{assignment}/submissions/{submission}', [GradingController::class, 'show'])->name('grading.show');
     Route::post('assignments/{assignment}/submissions/{submission}/grade', [GradingController::class, 'store'])->name('grading.store');
 });
+=======
+Route::post('/lessons/store', [LessonController::class, 'store'])->name('lessons.store');
+>>>>>>> 1e6bbe3924f44904da4cdb5fe80090f04dbbbdc3
 // Root route - shows login page for guests, redirects authenticated users to dashboard
 Route::get('/', [AuthController::class, 'showLogin'])->name('home');
 
@@ -73,7 +77,8 @@ Route::get('/forgot-password', [App\Http\Controllers\PasswordResetController::cl
 Route::post('/forgot-password', [App\Http\Controllers\PasswordResetController::class, 'sendResetLink'])->name('password.email');
 Route::get('/reset-password/{token}', [App\Http\Controllers\PasswordResetController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset.submit');
-
+Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
@@ -111,11 +116,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/password/change', [ProfileController::class, 'showChangePassword'])->name('password.change');
     Route::put('/password/update', [ProfileController::class, 'updatePassword'])->name('password.update');
 
-    // Lesson Module Routes
-    Route::resource('lessons', LessonController::class);
+// Lesson Module Routes
 
-    // Assignment Module Routes
-    Route::resource('assignments', AssignmentController::class);
+
+
+// Assignment Module Routes
+Route::resource('assignments', AssignmentController::class);
 
     // Subject Selection Routes
     Route::get('/subjects/select', [App\Http\Controllers\SubjectController::class, 'select'])->name('subjects.select');
@@ -135,7 +141,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:20,1') // 20 discussions per minute (increased for testing)
         ->name('discussions.store');
 
-    Route::resource('discussions', DiscussionController::class)->except(['index', 'store']);
+Route::resource('discussions', DiscussionController::class)->except(['index', 'store']);
+
+
 
     // Comment Routes with rate limiting
     Route::post('comments', [CommentController::class, 'store'])

@@ -13,7 +13,7 @@ class RegisterRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -22,7 +22,15 @@ class RegisterRequest extends FormRequest
             'password' => ['required', 'string', 'min:6'],
             'user_id' => ['required', 'string', 'max:255', 'unique:users,user_id'],
             'user_type' => ['nullable', 'in:student,lecturer'],
+            'class' => ['nullable', 'string', 'in:1A,1B'],
         ];
+
+        // Class is required only for students
+        if ($this->input('user_type') === 'student') {
+            $rules['class'] = ['required', 'string', 'in:1A,1B'];
+        }
+
+        return $rules;
     }
 
     protected function prepareForValidation(): void
@@ -48,8 +56,8 @@ class RegisterRequest extends FormRequest
             'user_id.required' => 'Please enter your user ID.',
             'user_id.unique' => 'This user ID is already registered.',
             'user_type.in' => 'Please select either student or lecturer.',
+            'class.required' => 'Please select your class.',
+            'class.in' => 'Please select either 1A or 1B.',
         ];
     }
 }
-
-

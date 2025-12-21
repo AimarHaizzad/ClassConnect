@@ -6,7 +6,6 @@ use App\Http\Requests\Discussion\StoreDiscussionRequest;
 use App\Http\Requests\Discussion\UpdateDiscussionRequest;
 use App\Models\Discussion;
 use App\Models\Subject;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -24,13 +23,27 @@ class DiscussionController extends Controller
             return redirect()->route('subjects.select');
         }
 
+        $user = auth()->user();
+        $userClass = $user->class ?? null;
+        $isLecturer = $user->user_type === 'lecturer';
+
+        // Only students need a class to view discussions
+        if (! $isLecturer && ! $userClass) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You must be assigned to a class to view discussions.');
+        }
+
         $subject = Subject::findOrFail($subjectId);
+
+        // Show all discussions but filter by class for interactions
+        // Students can see all discussions but only interact with their own class
+        // Lecturers can see and interact with all discussions
         $discussions = Discussion::with(['user', 'comments.user'])
             ->where('subject_id', $subjectId)
             ->latest()
             ->paginate(10);
 
-        return view('discussions.index', compact('discussions', 'subject'));
+        return view('discussions.index', compact('discussions', 'subject', 'userClass', 'isLecturer'));
     }
 
     /**
@@ -45,8 +58,10 @@ class DiscussionController extends Controller
         }
 
         $subject = Subject::findOrFail($subjectId);
+        $user = auth()->user();
+        $isLecturer = $user->user_type === 'lecturer';
 
-        return view('discussions.create', compact('subject'));
+        return view('discussions.create', compact('subject', 'isLecturer'));
     }
 
     /**
@@ -66,7 +81,17 @@ class DiscussionController extends Controller
             return redirect()->route('subjects.select');
         }
 
-        $userId = auth()->id() ?? User::first()->id ?? 1;
+        $user = auth()->user();
+        $userClass = $user->class ?? null;
+        $isLecturer = $user->user_type === 'lecturer';
+
+        // Only students need a class to create discussions
+        if (! $isLecturer && ! $userClass) {
+            return redirect()->back()
+                ->with('error', 'You must be assigned to a class to create discussions.');
+        }
+
+        $userId = $user->id;
 
         $imagePath = null;
         if ($request->hasFile('image')) {
@@ -87,9 +112,16 @@ class DiscussionController extends Controller
             }
         }
 
+        // For lecturers: use selected class if provided, otherwise null
+        // For students: use their assigned class
+        $discussionClass = $isLecturer
+            ? ($request->input('class') ?: null)
+            : $userClass;
+
         $discussion = Discussion::create([
             'user_id' => $userId,
             'subject_id' => $subjectId,
+            'class' => $discussionClass,
             'title' => $request->title,
             'content' => $request->content,
             'image' => $imagePath,
@@ -110,9 +142,18 @@ class DiscussionController extends Controller
             return redirect()->route('subjects.select');
         }
 
+        $user = auth()->user();
+        $userClass = $user->class ?? null;
+        $isLecturer = $user->user_type === 'lecturer';
+
+        // Lecturers can interact with all discussions
+        // Students can only interact with discussions from their own class
+        // If discussion has no class (lecturer created), all can interact
+        $canInteract = $isLecturer || ($userClass && $discussion->class === $userClass) || ! $discussion->class;
+
         $discussion->load(['user', 'subject', 'comments.user', 'comments.replies.user']);
 
-        return view('discussions.show', compact('discussion'));
+        return view('discussions.show', compact('discussion', 'canInteract', 'userClass', 'isLecturer'));
     }
 
     /**
@@ -126,15 +167,29 @@ class DiscussionController extends Controller
             return redirect()->route('subjects.select');
         }
 
+        $user = auth()->user();
+        $userClass = $user->class ?? null;
+        $isLecturer = $user->user_type === 'lecturer';
+
         // Check authorization - users can only edit their own discussions
-        $currentUserId = auth()->id() ?? User::first()->id ?? 1;
-        if ($discussion->user_id != $currentUserId) {
+        if ($discussion->user_id != $user->id) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Lecturers can edit any discussion, students can only edit from their class
+        if (! $isLecturer) {
+            if (! $userClass) {
+                return redirect()->back()
+                    ->with('error', 'You must be assigned to a class to edit discussions.');
+            }
+            if ($discussion->class !== $userClass) {
+                abort(403, 'You can only edit discussions from your own class.');
+            }
         }
 
         $discussion->load('subject');
 
-        return view('discussions.edit', compact('discussion'));
+        return view('discussions.edit', compact('discussion', 'isLecturer'));
     }
 
     /**
@@ -148,10 +203,24 @@ class DiscussionController extends Controller
             return redirect()->route('subjects.select');
         }
 
+        $user = auth()->user();
+        $userClass = $user->class ?? null;
+        $isLecturer = $user->user_type === 'lecturer';
+
         // Check authorization
-        $currentUserId = auth()->id() ?? User::first()->id ?? 1;
-        if ($discussion->user_id != $currentUserId) {
+        if ($discussion->user_id != $user->id) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Lecturers can update any discussion, students can only update from their class
+        if (! $isLecturer) {
+            if (! $userClass) {
+                return redirect()->back()
+                    ->with('error', 'You must be assigned to a class to update discussions.');
+            }
+            if ($discussion->class !== $userClass) {
+                abort(403, 'You can only update discussions from your own class.');
+            }
         }
 
         // Handle image upload
@@ -168,12 +237,20 @@ class DiscussionController extends Controller
             $imagePath = $file->storeAs('discussions', $filename, 'public');
         }
 
-        // Update discussion
-        $discussion->update([
+        // For lecturers: allow updating class, for students: keep their class
+        $updateData = [
             'title' => $request->title,
             'content' => $request->content,
             'image' => $imagePath,
-        ]);
+        ];
+
+        // Lecturers can change the class, students keep their assigned class
+        if ($isLecturer && $request->has('class')) {
+            $updateData['class'] = $request->input('class') ?: null;
+        }
+
+        // Update discussion
+        $discussion->update($updateData);
 
         return redirect()->route('discussions.show', $discussion)
             ->with('success', 'Discussion updated successfully!');
@@ -184,9 +261,24 @@ class DiscussionController extends Controller
      */
     public function destroy(Discussion $discussion): RedirectResponse
     {
+        $user = auth()->user();
+        $userClass = $user->class ?? null;
+        $isLecturer = $user->user_type === 'lecturer';
+
         // Check authorization
-        if (auth()->id() !== $discussion->user_id) {
+        if ($user->id !== $discussion->user_id) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Lecturers can delete any discussion, students can only delete from their class
+        if (! $isLecturer) {
+            if (! $userClass) {
+                return redirect()->back()
+                    ->with('error', 'You must be assigned to a class to delete discussions.');
+            }
+            if ($discussion->class !== $userClass) {
+                abort(403, 'You can only delete discussions from your own class.');
+            }
         }
 
         // Delete associated image if exists

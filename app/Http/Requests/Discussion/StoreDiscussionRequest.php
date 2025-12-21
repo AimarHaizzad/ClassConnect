@@ -59,7 +59,7 @@ class StoreDiscussionRequest extends FormRequest
             'method' => $this->method(),
         ]);
 
-        return [
+        $rules = [
             'title' => ['required', 'string', 'max:255', 'min:3', new NoProfanity],
             'content' => ['required', 'string', 'min:10', 'max:5000', new NoProfanity],
             'image' => [
@@ -69,7 +69,10 @@ class StoreDiscussionRequest extends FormRequest
                 'max:2048', // 2MB max
                 'dimensions:max_width=2000,max_height=2000', // Prevent oversized images
             ],
+            'class' => ['nullable', 'string', 'in:1A,1B'],
         ];
+
+        return $rules;
     }
 
     public function messages(): array

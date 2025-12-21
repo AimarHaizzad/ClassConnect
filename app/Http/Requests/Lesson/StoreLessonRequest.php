@@ -11,7 +11,7 @@ class StoreLessonRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreLessonRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "title" => "required|string|max:255",
+            "description" => "required|string|max:1000",
+            "file_path" => "required|file|mimes:pdf,doc,docx,ppt,pptx,txt",
+            "subject_id" => "required|exists:subjects,id",
         ];
     }
 }
