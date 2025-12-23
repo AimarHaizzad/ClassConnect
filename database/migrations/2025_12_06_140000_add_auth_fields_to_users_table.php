@@ -11,30 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, update existing users to have unique usernames if they don't have one
-        $users = \App\Models\User::where(function ($query) {
-            $query->whereNull('username')->orWhere('username', '');
-        })->get();
-
-        foreach ($users as $user) {
-            $baseUsername = strtolower(str_replace(' ', '_', $user->name));
-            $username = $baseUsername;
-            $counter = 1;
-
-            // Ensure uniqueness
-            while (\App\Models\User::where('username', $username)->where('id', '!=', $user->id)->exists()) {
-                $username = $baseUsername.'_'.$counter;
-                $counter++;
-            }
-
-            $user->username = $username;
-            $user->save();
-        }
-
+        // First, add the columns to the table
         Schema::table('users', function (Blueprint $table) {
             // Add username column if it doesn't exist
             if (! Schema::hasColumn('users', 'username')) {
-                $table->string('username')->unique()->after('name');
+                $table->string('username')->nullable()->after('name');
             }
 
             // Add other columns if they don't exist
@@ -54,6 +35,26 @@ return new class extends Migration
                 $table->enum('user_type', ['student', 'lecturer'])->default('student')->after('user_id');
             }
         });
+
+        // Now update existing users to have unique usernames if they don't have one
+        $users = \App\Models\User::where(function ($query) {
+            $query->whereNull('username')->orWhere('username', '');
+        })->get();
+
+        foreach ($users as $user) {
+            $baseUsername = strtolower(str_replace(' ', '_', $user->name));
+            $username = $baseUsername;
+            $counter = 1;
+
+            // Ensure uniqueness
+            while (\App\Models\User::where('username', $username)->where('id', '!=', $user->id)->exists()) {
+                $username = $baseUsername.'_'.$counter;
+                $counter++;
+            }
+
+            $user->username = $username;
+            $user->save();
+        }
 
         // Add unique constraint to username if column exists but constraint doesn't
         if (Schema::hasColumn('users', 'username')) {
