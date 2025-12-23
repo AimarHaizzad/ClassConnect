@@ -17,7 +17,10 @@ class LessonFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+              'title' => $this->faker->sentence(),
+            'description' => $this->faker->paragraph(),
+            'file_path' => $this->faker->filePath(),
+            'subject_id' => \App\Models\Subject::factory(),
         ];
     }
 }

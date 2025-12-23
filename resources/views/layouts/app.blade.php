@@ -245,6 +245,7 @@
             // Profile click handler - can be extended later
             console.log('Profile clicked');
         }
+        
     </script>
 </body>
 </html>

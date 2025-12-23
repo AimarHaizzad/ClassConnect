@@ -19,7 +19,12 @@ Route::resource('profiles', ProfileController::class);
 
 // Lesson Module Routes
 Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
-Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
+Route::get('/lessons/lessonCreate', [LessonController::class, 'lessonCreate'])->name('lessons.lessonCreate');
+Route::resource('lessons', LessonController::class);
+Route::get('/lessons/file/{id}', [LessonController::class, 'file'])->name('lessons.file');
+Route::delete('/lessons/files/{id}', [LessonController::class, 'deleteFile'])->name('lessons.deleteFile');
+
+Route::post('/lessons/store', [LessonController::class, 'store'])->name('lessons.store');
 // Assignment Module Routes
 Route::resource('assignments', AssignmentController::class);
 
