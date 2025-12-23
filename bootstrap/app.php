@@ -11,9 +11,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-<<<<<<< HEAD
-        // $middleware->append(App\Http\Middleware\CheckDatabaseConnection::class);
-=======
         // Redirect guests trying to access protected routes to login
         $middleware->redirectGuestsTo(fn () => route('login'));
 
@@ -22,7 +19,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\RefreshSessionOnActivity::class,
         ]);
->>>>>>> origin/main
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Handle CSRF token mismatch (419 errors)

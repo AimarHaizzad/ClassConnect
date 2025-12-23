@@ -21,7 +21,6 @@ class StoreLessonRequest extends FormRequest
      */
     public function rules(): array
     {
-<<<<<<< HEAD
       return [
             //
             "title" => "required|string|max:255",
@@ -40,13 +39,6 @@ class StoreLessonRequest extends FormRequest
             "file_path.file" => "The uploaded file must be a valid file.",
             "file_path.mimes" => "The uploaded file must be a file of type: pdf, doc, docx, ppt, pptx, txt.",
             "subject_id.required" => "The subject is required.",
-=======
-        return [
-            "title" => "required|string|max:255",
-            "description" => "required|string|max:1000",
-            "file_path" => "required|file|mimes:pdf,doc,docx,ppt,pptx,txt",
-            "subject_id" => "required|exists:subjects,id",
->>>>>>> origin/main
         ];
     }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -54,14 +55,12 @@ Route::post('/forgot-password', [App\Http\Controllers\PasswordResetController::c
 Route::get('/reset-password/{token}', [App\Http\Controllers\PasswordResetController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset.submit');
 Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
-<<<<<<< HEAD
 Route::get('/lessons/lessonCreate', [LessonController::class, 'lessonCreate'])->name('lessons.lessonCreate');
 Route::resource('lessons', LessonController::class);
 Route::get('/lessons/file/{id}', [LessonController::class, 'file'])->name('lessons.file');
 Route::delete('/lessons/files/{id}', [LessonController::class, 'deleteFile'])->name('lessons.deleteFile');
 
 Route::post('/lessons/store', [LessonController::class, 'store'])->name('lessons.store');
-=======
 Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -104,7 +103,6 @@ Route::middleware('auth')->group(function () {
 
 
 
->>>>>>> origin/main
 // Assignment Module Routes
 Route::resource('assignments', AssignmentController::class);
 
