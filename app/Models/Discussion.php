@@ -15,6 +15,7 @@ class Discussion extends Model
     protected $fillable = [
         'user_id',
         'subject_id',
+        'class',
         'title',
         'content',
         'image',

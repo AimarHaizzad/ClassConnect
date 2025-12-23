@@ -21,7 +21,11 @@ class Subject extends Model
     {
         return $this->hasMany(Discussion::class);
     }
+<<<<<<< HEAD
         public function lessons(): HasMany
+=======
+    public function lessons(): HasMany
+>>>>>>> origin/main
     {
         return $this->hasMany(Lesson::class);
     }
