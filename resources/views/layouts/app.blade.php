@@ -204,6 +204,11 @@
         </div>
     </div>
 
+    <!-- Connection Status Alert -->
+    <div id="offline-alert" class="alert alert-danger position-fixed top-0 start-50 translate-middle-x mt-2" style="display: none; z-index: 9999; min-width: 300px;">
+        <i class="bi bi-wifi-off"></i> No internet connection. Please check your WiFi.
+    </div>
+
     <!-- Main Container -->
     <div class="main-container">
         <!-- Sidebar -->
@@ -245,7 +250,23 @@
             // Profile click handler - can be extended later
             console.log('Profile clicked');
         }
-        
+
+        // Check for internet connection
+        const offlineAlert = document.getElementById('offline-alert');
+
+        window.addEventListener('offline', function() {
+            offlineAlert.style.display = 'block';
+        });
+
+        window.addEventListener('online', function() {
+            offlineAlert.style.display = 'none';
+        });
+
+        // Check connection status on page load
+        if (!navigator.onLine) {
+            offlineAlert.style.display = 'block';
+        }
+
     </script>
 </body>
 </html>

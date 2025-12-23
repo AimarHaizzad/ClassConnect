@@ -15,7 +15,11 @@
             {{ session('error') }}
         </div>
     @endsession
-
+    @if(isset($connected) && !$connected)
+    <div class="alert alert-danger text-center">
+        ⚠️ Connection lost. Please try again later.
+    </div>
+    @endif
     <div class="container">
         <div class="card p-4 mx-auto">
 
@@ -53,11 +57,15 @@
                     <label class="form-label">Subject</label>
                     <select name="subject_id" class="form-select">
                         <option value="">Please select subject</option>
+                        @isset($subjects)
+
                         @foreach ($subjects as $subject)
                             <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
                                 {{ $subject->name }}
                             </option>
                         @endforeach
+                        @endisset
+
 
                     </select>
                     @error('subject_id')

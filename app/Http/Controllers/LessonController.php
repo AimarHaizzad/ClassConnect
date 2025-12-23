@@ -19,13 +19,19 @@ class LessonController extends Controller
      */
       public function lessonCreate()
     {
+        try{
         $subjects = Subject::all();
         return view('lessons.lessonCreate', compact('subjects'));
+        }
+        catch(Exception $e){
+            return view('lessons.lessonCreate')->with('error', 'An error occurred while loading the lesson creation page.');
+        }
     }
     public function index(Request $request)
     {
+        try{
         $lessons = Lesson::query();
-             $subjects = Subject::all();
+        $subjects = Subject::all();
         if($request->search){
             $lessons->where('title', 'like', '%'.$request->search.'%');
         }
@@ -34,6 +40,9 @@ class LessonController extends Controller
         }
         $lessons = $lessons->paginate(6);
         return view('lessons.index', compact('lessons', 'subjects'));
+    }catch(Exception $e){
+            return redirect()->back()->with('error', 'An error occurred while fetching lessons.');
+        }
     }
     public function lessonView()
     {
@@ -78,17 +87,17 @@ class LessonController extends Controller
             // Here you can save the file path to the database if needed
            File::create([
             'file_path' => $filePath,
-            'file_name' => $file->hashName(),
+            'file_name' => $file->getClientOriginalName(),
             'lesson_id' => $lesson->id,
            ]);
         }
         }
     });
 
-        return redirect()->route('lessons.lessonCreate')->with('success', 'Lesson created successfully.');
+        return redirect()->back()->with('success', 'Lesson created successfully.');
     }
         catch(Exception $e){
-            return  redirect()->route('lessons.lessonCreate')->with('error', 'An error occurred while creating the lesson.');
+            return  redirect()->back()->with('error', 'An error occurred while creating the lesson.');
         }
     }
 
@@ -135,7 +144,7 @@ class LessonController extends Controller
 
                     File::create([
                         'file_path' => $filePath,
-                        'file_name' => $file->hashName(),
+                        'file_name' => $file->getClientOriginalName(),
                         'lesson_id' => $lesson->id,
                     ]);
                 }
