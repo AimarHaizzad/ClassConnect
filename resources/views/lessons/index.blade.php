@@ -5,11 +5,11 @@
 @section('content')
 
 <div class="container py-5">
-        @session('success')
-        <div class="alert alert-success mt-3">
-            {{ session('success') }}
-        </div>
-    @endsession
+   @if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+    @endif
     <!-- Top Bar -->
     <form action="{{ route("lessons.index") }}" method="get">
     <div class="d-flex align-items-center gap-3 mb-4">
@@ -31,9 +31,11 @@
             </span>
         </div>
         </form>
+        @if(Auth::user()->user_type === "lecturer")
         <a class="btn btn-light fw-semibold" href="{{ route('lessons.lessonCreate') }}">
             <i class="bi bi-plus"></i> Lesson
         </a>
+        @endif
     </div>
 
     <!-- Lessons Table -->
@@ -64,9 +66,11 @@
                                 <a href="{{ route('lessons.show', $lesson->id) }}" class="btn btn-light btn-sm">
                                     <i class="bi bi-eye"></i> View
                                 </a>
+                                @if(Auth::user()->user_type === "lecturer")
                                 <a href="{{ route('lessons.edit', $lesson->id) }}" class="btn btn-light btn-sm">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
+
                                 <form onsubmit="return confirm('Are you sure you want to delete?')" action="{{ route('lessons.destroy', [$lesson->id, request('subject'), request('search')]) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -74,6 +78,7 @@
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

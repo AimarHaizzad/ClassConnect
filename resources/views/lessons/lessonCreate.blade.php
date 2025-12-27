@@ -4,15 +4,15 @@
 
 @section('content')
     {{-- popup dialog box for upload success --}}
-    @session('success')
-        <div class="alert alert-success mt-3">
-            {{ session('success') }}
-        </div>
-    @endsession
+      @if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+    @endif
     {{-- popup dialog box for upload error --}}
     @session('error')
         <div class="alert alert-danger mt-3">
-            {{ session('error') }}
+            {{ $value }}
         </div>
     @endsession
     @if(isset($connected) && !$connected)
@@ -58,24 +58,17 @@
                     <select name="subject_id" class="form-select">
                         <option value="">Please select subject</option>
                         @isset($subjects)
-
                         @foreach ($subjects as $subject)
                             <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
                                 {{ $subject->name }}
                             </option>
                         @endforeach
                         @endisset
-
-
                     </select>
                     @error('subject_id')
                         <div class="text-danger mt-1">{{ $message }}
-
                         </div>
                     @enderror
-
-
-
                 </div>
 
 
@@ -103,7 +96,12 @@
                     <a href="{{ route('lessons.index') }}" class="btn btn-secondary col-md-2">
                         Cancel
                     </a>
-                    <button type="submit" class="btn btn-success col-md-2">save</button>
+                    <button type="submit" id="submitBtn" class="btn btn-success col-md-2">save</button>
+                </div>
+
+                <!-- Offline indicator -->
+                <div id="offlineIndicator" class="alert alert-warning mt-3 d-none">
+                    <strong>⚠️ You are offline.</strong> Please check your internet connection. You cannot submit while offline.
                 </div>
         </div>
         </form>
@@ -159,5 +157,31 @@
 
         $input[0].files = dataTransfer.files;
     }
+
+    // Offline/Online detection
+    const submitBtn = document.getElementById('submitBtn');
+    const offlineIndicator = document.getElementById('offlineIndicator');
+
+    function updateOnlineStatus() {
+        if (navigator.onLine) {
+            // User is online
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('disabled');
+            offlineIndicator.classList.add('d-none');
+        } else {
+            // User is offline
+            submitBtn.disabled = true;
+            submitBtn.classList.add('disabled');
+            offlineIndicator.classList.remove('d-none');
+        }
+    }
+
+    // Check status on page load
+    updateOnlineStatus();
+
+    // Listen for online/offline events
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
 </script>
 @endsection

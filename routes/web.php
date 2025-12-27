@@ -54,11 +54,7 @@ Route::get('/forgot-password', [App\Http\Controllers\PasswordResetController::cl
 Route::post('/forgot-password', [App\Http\Controllers\PasswordResetController::class, 'sendResetLink'])->name('password.email');
 Route::get('/reset-password/{token}', [App\Http\Controllers\PasswordResetController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset.submit');
-Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
-Route::get('/lessons/lessonCreate', [LessonController::class, 'lessonCreate'])->name('lessons.lessonCreate');
-Route::resource('lessons', LessonController::class);
-Route::get('/lessons/file/{id}', [LessonController::class, 'file'])->name('lessons.file');
-Route::delete('/lessons/files/{id}', [LessonController::class, 'deleteFile'])->name('lessons.deleteFile');
+
 
 Route::post('/lessons/store', [LessonController::class, 'store'])->name('lessons.store');
 Route::get('/lessons/lessonForm', [LessonController::class, 'lessonForm'])->name('lessons.lessonForm');
@@ -88,6 +84,11 @@ Route::get('/session/keep-alive', function () {
 
 // Protected Routes
 Route::middleware('auth')->group(function () {
+    Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+    Route::get('/lessons/lessonCreate', [LessonController::class, 'lessonCreate'])->name('lessons.lessonCreate');
+    Route::resource('lessons', LessonController::class);
+    Route::get('/lessons/file/{id}', [LessonController::class, 'file'])->name('lessons.file');
+    Route::delete('/lessons/files/{id}', [LessonController::class, 'deleteFile'])->name('lessons.deleteFile');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile Module Routes
