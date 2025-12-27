@@ -296,9 +296,79 @@
             padding: 30px;
             overflow-y: auto;
         }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #F2EFDF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-logo {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 48px;
+            font-weight: bold;
+            color: #795E2E;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(121, 94, 46, 0.1);
+            border-top-color: #795E2E;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #795E2E;
+            font-size: 16px;
+            font-weight: 500;
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">ClassConnect</div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
     <!-- Top Navigation Bar -->
     <div class="top-nav">
         <div class="hamburger">
@@ -426,6 +496,35 @@
             }
         }
 
+        // Loading screen functions
+        function showLoadingScreen() {
+            let loadingScreen = document.getElementById('loadingScreen');
+            if (!loadingScreen) {
+                loadingScreen = document.createElement('div');
+                loadingScreen.id = 'loadingScreen';
+                loadingScreen.className = 'loading-screen';
+                loadingScreen.innerHTML = `
+                    <div class="loading-logo">ClassConnect</div>
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading...</div>
+                `;
+                document.body.appendChild(loadingScreen);
+            }
+            loadingScreen.classList.remove('hidden');
+        }
+
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(function() {
+                    if (loadingScreen.parentNode) {
+                        loadingScreen.remove();
+                    }
+                }, 500);
+            }
+        }
+
         // Initialize sidebar state from localStorage
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
@@ -433,6 +532,33 @@
             if (sidebar && sidebarHidden) {
                 sidebar.classList.add('hidden');
             }
+
+            // Hide loading screen when page is loaded
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    hideLoadingScreen();
+                }, 300);
+            });
+
+            // Show loading screen on form submissions
+            const forms = document.querySelectorAll('form[method="post"], form[method="POST"]');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function() {
+                    showLoadingScreen();
+                });
+            });
+
+            // Show loading screen on link clicks (navigation)
+            const links = document.querySelectorAll('a[href]:not([href^="#"]):not([href^="javascript:"])');
+            links.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    // Don't show loading for external links or links with target="_blank"
+                    if (link.hostname !== window.location.hostname || link.target === '_blank') {
+                        return;
+                    }
+                    showLoadingScreen();
+                });
+            });
         });
 
         // Add click event to hamburger menu

@@ -35,15 +35,42 @@ class DiscussionController extends Controller
 
         $subject = Subject::findOrFail($subjectId);
 
-        // Show all discussions but filter by class for interactions
-        // Students can see all discussions but only interact with their own class
-        // Lecturers can see and interact with all discussions
-        $discussions = Discussion::with(['user', 'comments.user'])
-            ->where('subject_id', $subjectId)
-            ->latest()
-            ->paginate(10);
+        // Get search and filter parameters
+        $search = request()->input('search');
+        $classFilter = request()->input('class');
 
-        return view('discussions.index', compact('discussions', 'subject', 'userClass', 'isLecturer'));
+        // Build query
+        $query = Discussion::with(['user', 'comments.user'])
+            ->where('subject_id', $subjectId);
+
+        // Apply search filter (search by title or author name)
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', '%'.$search.'%');
+                    });
+            });
+        }
+
+        // Apply class filter
+        if ($classFilter) {
+            $query->where('class', $classFilter);
+        }
+
+        // Get distinct classes for filter dropdown
+        $availableClasses = Discussion::where('subject_id', $subjectId)
+            ->whereNotNull('class')
+            ->distinct()
+            ->pluck('class')
+            ->sort()
+            ->values();
+
+        $discussions = $query->latest()
+            ->paginate(10)
+            ->withQueryString(); // Preserve query parameters in pagination links
+
+        return view('discussions.index', compact('discussions', 'subject', 'userClass', 'isLecturer', 'availableClasses', 'search', 'classFilter'));
     }
 
     /**

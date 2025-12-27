@@ -33,6 +33,75 @@
         </div>
     @endif
 
+    <!-- Search and Filter Section -->
+    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px;">
+        <form method="GET" action="{{ route('discussions.index') }}" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+            <!-- Search Input -->
+            <div style="flex: 1; min-width: 250px;">
+                <label for="search" style="display: block; margin-bottom: 6px; color: #333; font-weight: 600; font-size: 14px;">Search</label>
+                <input 
+                    type="text" 
+                    id="search" 
+                    name="search" 
+                    value="{{ $search ?? '' }}" 
+                    placeholder="Search by title or author name..." 
+                    style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; height: 42px; box-sizing: border-box;"
+                    onfocus="this.style.borderColor='#795E2E'"
+                    onblur="this.style.borderColor='#e0e0e0'"
+                >
+            </div>
+
+            <!-- Class Filter Dropdown -->
+            <div style="min-width: 180px;">
+                <label for="class" style="display: block; margin-bottom: 6px; color: #333; font-weight: 600; font-size: 14px;">Filter by Class</label>
+                <select 
+                    id="class" 
+                    name="class" 
+                    style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; transition: border-color 0.3s; height: 42px; box-sizing: border-box;"
+                    onfocus="this.style.borderColor='#795E2E'"
+                    onblur="this.style.borderColor='#e0e0e0'"
+                >
+                    <option value="">All Classes</option>
+                    @foreach($availableClasses ?? [] as $class)
+                        <option value="{{ $class }}" {{ ($classFilter ?? '') === $class ? 'selected' : '' }}>
+                            {{ $class }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div>
+                <button 
+                    type="submit" 
+                    style="background: #795E2E; color: white; padding: 10px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; height: 42px;"
+                    onmouseover="this.style.background='#6a5127'; this.style.transform='translateY(-1px)'"
+                    onmouseout="this.style.background='#795E2E'; this.style.transform='translateY(0)'"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 6px;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    Search
+                </button>
+            </div>
+
+            <!-- Clear Button (only show if filters are active) -->
+            @if(($search ?? '') || ($classFilter ?? ''))
+                <div>
+                    <a 
+                        href="{{ route('discussions.index') }}" 
+                        style="background: #6c757d; color: white; padding: 10px 24px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; height: 42px; line-height: 22px; transition: all 0.3s;"
+                        onmouseover="this.style.background='#5a6268'; this.style.transform='translateY(-1px)'"
+                        onmouseout="this.style.background='#6c757d'; this.style.transform='translateY(0)'"
+                    >
+                        Clear
+                    </a>
+                </div>
+            @endif
+        </form>
+    </div>
+
     @if($discussions->count() > 0)
         <div style="display: flex; flex-direction: column; gap: 20px;">
             @foreach($discussions as $discussion)

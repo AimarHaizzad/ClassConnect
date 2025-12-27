@@ -10,18 +10,25 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('user_id')->unique()->after('id'); // LN001
-    });
-}
+    {
+        Schema::table('users', function (Blueprint $table) {
+            if (! Schema::hasColumn('users', 'user_id')) {
+                $table->string('user_id')->unique()->after('id'); // LN001
+            }
+        });
+    }
 
-public function down(): void
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->dropUnique(['user_id']);
-        $table->dropColumn('user_id');
-    });
-}
-
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            if (Schema::hasColumn('users', 'user_id')) {
+                try {
+                    $table->dropUnique(['user_id']);
+                } catch (\Throwable $e) {
+                    // Ignore if unique constraint doesn't exist
+                }
+                $table->dropColumn('user_id');
+            }
+        });
+    }
 };
