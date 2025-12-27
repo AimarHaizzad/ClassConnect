@@ -17,7 +17,9 @@ class SubjectFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => $this->faker->word(),
+            'description' => $this->faker->sentence(),
+            'code' => strtoupper($this->faker->bothify('???###')),
         ];
     }
 }

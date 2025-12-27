@@ -20,4 +20,8 @@ class Lesson extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+    public function files(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(File::class);
+    }
 }
