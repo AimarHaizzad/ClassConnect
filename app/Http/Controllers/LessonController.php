@@ -38,6 +38,7 @@ class LessonController extends Controller
         if($request->subject){
             $lessons->where('subject_id', $request->subject);
         }
+        $lessons->orderBy('created_at', 'desc');
         $lessons = $lessons->paginate(6);
         return view('lessons.index', compact('lessons', 'subjects'));
     }catch(Exception $e){
