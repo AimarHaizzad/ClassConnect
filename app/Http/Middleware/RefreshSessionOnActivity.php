@@ -43,17 +43,6 @@ class RefreshSessionOnActivity
             $request->session()->put('regeneration_count', $regenerationCount + 1);
         }
 
-        $response = $next($request);
-
-        // Ensure session is saved after response
-        // But don't save if there are validation errors being flashed
-        // (Laravel needs to handle the flash data first)
-        if (Auth::check() && ! $request->session()->has('errors')) {
-            $request->session()->save();
-        }
-
-        return $response;
+        return $next($request);
     }
 }
-
-

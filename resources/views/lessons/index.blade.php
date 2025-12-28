@@ -5,11 +5,18 @@
 @section('content')
 
 <div class="container py-5">
-        @session('success')
-        <div class="alert alert-success mt-3">
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
             {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    @endsession
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
     <!-- Top Bar -->
     <form action="{{ route("lessons.index") }}" method="get">
     <div class="d-flex align-items-center gap-3 mb-4">
@@ -31,9 +38,11 @@
             </span>
         </div>
         </form>
+        @if(auth()->check() && auth()->user()->user_type === 'lecturer')
         <a class="btn btn-light fw-semibold" href="{{ route('lessons.lessonCreate') }}">
             <i class="bi bi-plus"></i> Lesson
         </a>
+        @endif
     </div>
 
     <!-- Lessons Table -->
@@ -64,6 +73,7 @@
                                 <a href="{{ route('lessons.show', $lesson->id) }}" class="btn btn-light btn-sm">
                                     <i class="bi bi-eye"></i> View
                                 </a>
+                                @if(auth()->check() && auth()->user()->user_type === 'lecturer')
                                 <a href="{{ route('lessons.edit', $lesson->id) }}" class="btn btn-light btn-sm">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
@@ -74,6 +84,7 @@
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

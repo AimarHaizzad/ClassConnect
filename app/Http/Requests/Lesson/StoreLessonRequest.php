@@ -11,7 +11,8 @@ class StoreLessonRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        // Authorization is handled in the controller
+        return auth()->check() && (auth()->user()->user_type ?? '') === 'lecturer';
     }
 
     /**
@@ -21,24 +22,25 @@ class StoreLessonRequest extends FormRequest
      */
     public function rules(): array
     {
-      return [
+        return [
             //
-            "title" => "required|string|max:255",
-            "description" => "required|string|max:1000",
-            "file_path" => "nullable|array",
-            "file_path.*" => "nullable|mimes:pdf,doc,docx,ppt,pptx,txt",
-            "subject_id" => "required|exists:subjects,id",
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'file_path' => 'nullable|array',
+            'file_path.*' => 'nullable|mimes:pdf,doc,docx,ppt,pptx,txt',
+            'subject_id' => 'required|exists:subjects,id',
         ];
 
     }
-      public function messages(): array
+
+    public function messages(): array
     {
         return [
-            "title.required" => "The lesson title is required.",
-            "description.required" => "The lesson description is required.",
-            "file_path.file" => "The uploaded file must be a valid file.",
-            "file_path.mimes" => "The uploaded file must be a file of type: pdf, doc, docx, ppt, pptx, txt.",
-            "subject_id.required" => "The subject is required.",
+            'title.required' => 'The lesson title is required.',
+            'description.required' => 'The lesson description is required.',
+            'file_path.file' => 'The uploaded file must be a valid file.',
+            'file_path.mimes' => 'The uploaded file must be a file of type: pdf, doc, docx, ppt, pptx, txt.',
+            'subject_id.required' => 'The subject is required.',
         ];
     }
 }
