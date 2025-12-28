@@ -43,12 +43,9 @@ RUN npm run build
 # Set permissions for storage and cache directories
 RUN chmod -R 775 storage bootstrap/cache
 
-# Create entrypoint script to clear cache on startup
-RUN echo '#!/bin/sh\nphp artisan config:clear || true\nphp artisan cache:clear || true\nexec php artisan serve --host=0.0.0.0 --port=${PORT:-10000}' > /entrypoint.sh && chmod +x /entrypoint.sh
-
 # Expose port (Render sets PORT env var)
 EXPOSE 10000
 
 # Start PHP built-in server
-CMD ["/bin/sh", "/entrypoint.sh"]
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
 
