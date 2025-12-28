@@ -63,7 +63,18 @@ Route::get('/api/check-unique', function (Request $request) {
             return response()->json(['unique' => true, 'message' => null]);
         }
 
-        $exists = \App\Models\User::where($field, $value)->exists();
+        // Check if users table exists
+        try {
+            $exists = \App\Models\User::where($field, $value)->exists();
+        } catch (\Illuminate\Database\QueryException $e) {
+            // If table doesn't exist or connection fails, assume unique (not taken)
+            \Log::warning('Database error in check-unique, assuming unique', [
+                'error' => $e->getMessage(),
+                'field' => $field,
+            ]);
+
+            return response()->json(['unique' => true, 'message' => null]);
+        }
 
         $fieldLabel = str_replace('_', ' ', $field);
 
@@ -77,7 +88,8 @@ Route::get('/api/check-unique', function (Request $request) {
             'exception' => $e,
         ]);
 
-        return response()->json(['error' => 'An error occurred while checking availability'], 500);
+        // On any error, assume unique (not taken) so users can still try to register
+        return response()->json(['unique' => true, 'message' => null]);
     }
 })->name('api.check-unique');
 
