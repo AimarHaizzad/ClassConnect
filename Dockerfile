@@ -45,6 +45,9 @@ RUN chmod -R 775 storage bootstrap/cache
 
 # Create startup script that waits for DB, runs migrations, and starts the server
 RUN echo '#!/bin/sh\n\
+echo "Clearing config cache to ensure environment variables are loaded..."\n\
+php artisan config:clear\n\
+php artisan cache:clear\n\
 echo "Waiting for database connection..."\n\
 for i in 1 2 3 4 5; do\n\
   php artisan migrate:status > /dev/null 2>&1 && break\n\
