@@ -23,7 +23,11 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        
+        $this->call([
+            SubjectSeeder::class,
+        ]);
+        
         Lesson::factory(5)->create();
-        Subject::factory(5)->create();
     }
 }
