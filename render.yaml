@@ -3,7 +3,7 @@ services:
     name: classconnect
     runtime: docker
     plan: free
-    region: singapore
+    region: oregon
     dockerfilePath: ./Dockerfile
     envVars:
       - key: APP_ENV
@@ -53,6 +53,7 @@ services:
 databases:
   - name: classconnect-db
     plan: free
+    region: oregon
     databaseName: classconnect
     user: classconnect_user
 
