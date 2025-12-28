@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $middleware->web(append: [
                 \Illuminate\Http\Middleware\TrustProxies::class,
             ]);
-            
+
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
     })

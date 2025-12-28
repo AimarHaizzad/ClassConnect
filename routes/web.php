@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\Route;
 // Assignments Routes
 Route::middleware('auth')->group(function () {
     Route::resource('assignments', AssignmentController::class);
- // Student submission
+    // Student submission
     Route::get('assignments/{assignment}/submit', [SubmissionController::class, 'create'])->name('submissions.create');
     Route::post('assignments/{assignment}/submit', [SubmissionController::class, 'store'])->name('submissions.store');
     Route::get('my-submissions', [SubmissionController::class, 'my'])->name('submissions.my');
     Route::get('submissions/{submission}/download', [SubmissionController::class, 'download'])->name('submissions.download');
     Route::get('/assignments/{assignment}/download', [AssignmentController::class, 'download'])
-    ->name('assignments.download');
+        ->name('assignments.download');
     Route::get('submissions/{submission}/edit', [SubmissionController::class, 'edit'])->name('submissions.edit');
     Route::put('submissions/{submission}', [SubmissionController::class, 'update'])->name('submissions.update');
     Route::delete('submissions/{submission}', [SubmissionController::class, 'destroy'])->name('submissions.destroy');
@@ -88,11 +88,11 @@ Route::get('/reset-password/{token}', [App\Http\Controllers\PasswordResetControl
 Route::post('/reset-password', [App\Http\Controllers\PasswordResetController::class, 'reset'])->name('password.reset.submit');
 // Lesson Module Routes (protected by auth middleware in controller)
 Route::middleware('auth')->group(function () {
-Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
-Route::get('/lessons/lessonCreate', [LessonController::class, 'lessonCreate'])->name('lessons.lessonCreate');
-Route::resource('lessons', LessonController::class);
-Route::get('/lessons/file/{id}', [LessonController::class, 'file'])->name('lessons.file');
-Route::delete('/lessons/files/{id}', [LessonController::class, 'deleteFile'])->name('lessons.deleteFile');
+    Route::get('/lessons', [LessonController::class, 'index'])->name('lessons.index');
+    Route::get('/lessons/lessonCreate', [LessonController::class, 'lessonCreate'])->name('lessons.lessonCreate');
+    Route::resource('lessons', LessonController::class);
+    Route::get('/lessons/file/{id}', [LessonController::class, 'file'])->name('lessons.file');
+    Route::delete('/lessons/files/{id}', [LessonController::class, 'deleteFile'])->name('lessons.deleteFile');
 });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
@@ -131,10 +131,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/password/change', [ProfileController::class, 'showChangePassword'])->name('password.change');
     Route::put('/password/update', [ProfileController::class, 'updatePassword'])->name('password.update');
 
-// Lesson Module Routes
+    // Lesson Module Routes
 
-// Assignment Module Routes
-Route::resource('assignments', AssignmentController::class);
+    // Assignment Module Routes
+    Route::resource('assignments', AssignmentController::class);
 
     // Subject Selection Routes
     Route::get('/subjects/select', [App\Http\Controllers\SubjectController::class, 'select'])->name('subjects.select');
@@ -154,7 +154,7 @@ Route::resource('assignments', AssignmentController::class);
         ->middleware('throttle:20,1') // 20 discussions per minute (increased for testing)
         ->name('discussions.store');
 
-Route::resource('discussions', DiscussionController::class)->except(['index', 'store']);
+    Route::resource('discussions', DiscussionController::class)->except(['index', 'store']);
 
     // Comment Routes with rate limiting
     Route::post('comments', [CommentController::class, 'store'])
