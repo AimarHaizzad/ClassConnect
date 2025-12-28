@@ -51,21 +51,34 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // API route for checking field uniqueness (for inline validation)
 Route::get('/api/check-unique', function (Request $request) {
-    $field = $request->query('field');
-    $value = $request->query('value');
+    try {
+        $field = $request->query('field');
+        $value = $request->query('value');
 
-    if (! in_array($field, ['username', 'email', 'user_id'])) {
-        return response()->json(['error' => 'Invalid field'], 400);
+        if (! in_array($field, ['username', 'email', 'user_id'])) {
+            return response()->json(['error' => 'Invalid field'], 400);
+        }
+
+        if (empty($value)) {
+            return response()->json(['unique' => true, 'message' => null]);
+        }
+
+        $exists = \App\Models\User::where($field, $value)->exists();
+
+        $fieldLabel = str_replace('_', ' ', $field);
+
+        return response()->json([
+            'unique' => ! $exists,
+            'message' => $exists ? "This {$fieldLabel} is already taken." : null,
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('API check-unique error: '.$e->getMessage(), [
+            'field' => $request->query('field'),
+            'exception' => $e,
+        ]);
+
+        return response()->json(['error' => 'An error occurred while checking availability'], 500);
     }
-
-    $exists = \App\Models\User::where($field, $value)->exists();
-
-    $fieldLabel = str_replace('_', ' ', $field);
-
-    return response()->json([
-        'unique' => ! $exists,
-        'message' => $exists ? "This {$fieldLabel} is already taken." : null,
-    ]);
 })->name('api.check-unique');
 
 // Password Reset Routes (Forgot Password)

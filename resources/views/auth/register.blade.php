@@ -636,10 +636,13 @@
                 clearTimeout(uniqueCheckTimeouts[fieldName]);
 
                 uniqueCheckTimeouts[fieldName] = setTimeout(() => {
-                    fetch(`/api/check-unique?field=${fieldName}&value=${encodeURIComponent(value)}`, {
+                    // Use relative URL to avoid mixed content issues
+                    const url = `${window.location.origin}/api/check-unique?field=${fieldName}&value=${encodeURIComponent(value)}`;
+                    fetch(url, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
                         }
                     })
                     .then(response => response.json())
