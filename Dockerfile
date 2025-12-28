@@ -56,6 +56,8 @@ for i in 1 2 3 4 5; do\n\
 done\n\
 echo "Running migrations..."\n\
 php artisan migrate --force --no-interaction || echo "Migration failed, continuing anyway..."\n\
+echo "Seeding subjects (English and Mathematics)..."\n\
+php artisan db:seed --class=SubjectSeeder --force --no-interaction || echo "Seeder failed, continuing anyway..."\n\
 echo "Starting server..."\n\
 php artisan serve --host=0.0.0.0 --port=${PORT:-10000}' > /start.sh && chmod +x /start.sh
 
