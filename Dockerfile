@@ -43,9 +43,12 @@ RUN npm run build
 # Set permissions for storage and cache directories
 RUN chmod -R 775 storage bootstrap/cache
 
+# Create startup script that runs migrations and starts the server
+RUN echo '#!/bin/sh\nphp artisan migrate --force --no-interaction || true\nphp artisan serve --host=0.0.0.0 --port=${PORT:-10000}' > /start.sh && chmod +x /start.sh
+
 # Expose port (Render sets PORT env var)
 EXPOSE 10000
 
-# Start PHP built-in server
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+# Start PHP built-in server (migrations will run automatically)
+CMD ["/bin/sh", "/start.sh"]
 
