@@ -1,11 +1,10 @@
 services:
   - type: web
     name: classconnect
-    runtime: php
+    runtime: docker
     plan: free
     region: singapore
-    buildCommand: composer install --no-dev --optimize-autoloader && php artisan config:cache && php artisan route:cache && php artisan view:cache && npm ci && npm run build
-    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: APP_ENV
         value: production
