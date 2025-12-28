@@ -43,8 +43,18 @@ RUN npm run build
 # Set permissions for storage and cache directories
 RUN chmod -R 775 storage bootstrap/cache
 
-# Create startup script that runs migrations and starts the server
-RUN echo '#!/bin/sh\nphp artisan migrate --force --no-interaction || true\nphp artisan serve --host=0.0.0.0 --port=${PORT:-10000}' > /start.sh && chmod +x /start.sh
+# Create startup script that waits for DB, runs migrations, and starts the server
+RUN echo '#!/bin/sh\n\
+echo "Waiting for database connection..."\n\
+for i in 1 2 3 4 5; do\n\
+  php artisan migrate:status > /dev/null 2>&1 && break\n\
+  echo "Attempt $i: Database not ready, waiting 5 seconds..."\n\
+  sleep 5\n\
+done\n\
+echo "Running migrations..."\n\
+php artisan migrate --force --no-interaction || echo "Migration failed, continuing anyway..."\n\
+echo "Starting server..."\n\
+php artisan serve --host=0.0.0.0 --port=${PORT:-10000}' > /start.sh && chmod +x /start.sh
 
 # Expose port (Render sets PORT env var)
 EXPOSE 10000
