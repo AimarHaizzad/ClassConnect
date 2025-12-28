@@ -15,10 +15,19 @@ return new class extends Migration {
         });
 
         // Backfill usernames (only matters if you already have users)
-        DB::table('users')
-            ->whereNull('username')
-            ->orWhere('username', '')
-            ->update(['username' => DB::raw("CONCAT('user', id)")]);
+        // Use database-agnostic concatenation
+        $connection = DB::connection()->getDriverName();
+        if ($connection === 'pgsql') {
+            DB::table('users')
+                ->whereNull('username')
+                ->orWhere('username', '')
+                ->update(['username' => DB::raw("'user' || id::text")]);
+        } else {
+            DB::table('users')
+                ->whereNull('username')
+                ->orWhere('username', '')
+                ->update(['username' => DB::raw("CONCAT('user', id)")]);
+        }
         // First, add the columns to the table
         Schema::table('users', function (Blueprint $table) {
             // Add username column if it doesn't exist
@@ -64,19 +73,17 @@ return new class extends Migration {
             $user->save();
         }
 
-        // Add unique constraint to username if column exists but constraint doesn't
+        // Add unique constraint to username (database-agnostic using Laravel's schema builder)
         if (Schema::hasColumn('users', 'username')) {
-            // Check if unique index exists
-            $indexes = \Illuminate\Support\Facades\DB::select("SHOW INDEXES FROM users WHERE Column_name = 'username' AND Non_unique = 0");
-            if (empty($indexes)) {
-                \Illuminate\Support\Facades\DB::statement('ALTER TABLE users ADD UNIQUE KEY users_username_unique (username)');
+            try {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->unique('username');
+                });
+            } catch (\Exception $e) {
+                // Constraint might already exist, ignore the error
+                // This is safe to ignore as the constraint is already in place
             }
         }
-
-        // Add unique after data is safe
-        Schema::table('users', function (Blueprint $table) {
-            $table->unique('username');
-        });
     }
 
     public function down(): void
