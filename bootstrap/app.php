@@ -11,16 +11,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Force HTTPS in production
-        if (env('APP_ENV') === 'production' && env('APP_URL', '') !== '' && str_starts_with(env('APP_URL', ''), 'https://')) {
-            $middleware->web(append: [
-                \Illuminate\Http\Middleware\TrustProxies::class,
-            ]);
-
-            \Illuminate\Support\Facades\URL::forceScheme('https');
-        }
-    })
-    ->withMiddleware(function (Middleware $middleware): void {
         // Redirect guests trying to access protected routes to login
         $middleware->redirectGuestsTo(fn () => route('login'));
 
