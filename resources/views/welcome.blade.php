@@ -109,22 +109,22 @@
         <p class="subtitle">High School Learning Platform</p>
 
         <div class="modules">
-            <a href="/profiles" class="module-card profile">
+            <a href="{{ route('profiles.index') }}" class="module-card profile">
                 <h2>👤 Profile</h2>
                 <p>Manage student and teacher profiles</p>
             </a>
 
-            <a href="/lessons" class="module-card lesson">
+            <a href="{{ route('lessons.index') }}" class="module-card lesson">
                 <h2>📚 Lesson</h2>
                 <p>Access and manage course lessons</p>
             </a>
 
-            <a href="/assignments" class="module-card assignment">
+            <a href="{{ route('assignments.index') }}" class="module-card assignment">
                 <h2>📝 Assignment</h2>
                 <p>Create and submit assignments</p>
             </a>
 
-            <a href="/discussions" class="module-card discussion">
+            <a href="{{ route('discussions.index') }}" class="module-card discussion">
                 <h2>💬 Discussion</h2>
                 <p>Engage in class discussions</p>
             </a>
