@@ -418,7 +418,7 @@
     <div class="main-container">
         <!-- Sidebar -->
         <div class="sidebar">
-            <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <a href="/dashboard" class="nav-item {{ request()->is('dashboard') ? 'active' : '' }}">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
@@ -444,15 +444,15 @@
                 </div>
             </div>
             <div class="nav-submenu {{ request()->is('profiles*') || request()->is('password*') ? '' : '' }}" style="{{ request()->is('profiles*') || request()->is('password*') ? 'display: block;' : '' }}">
-                <a href="{{ route('profiles.index') }}" class="nav-item {{ request()->routeIs('profiles.index') ? 'active' : '' }}">
+                <a href="/profiles" class="nav-item {{ request()->is('profiles') && !request()->is('profiles/*') ? 'active' : '' }}">
                     User Profile
                 </a>
-                <a href="{{ route('password.change') }}" class="nav-item {{ request()->routeIs('password.change') ? 'active' : '' }}">
+                <a href="/password/change" class="nav-item {{ request()->is('password*') ? 'active' : '' }}">
                     Change Password
                 </a>
             </div>
 
-            <a href="{{ route('lessons.index') }}" class="nav-item {{ request()->routeIs('lessons*') ? 'active' : '' }}">
+            <a href="/lessons" class="nav-item {{ request()->is('lessons*') ? 'active' : '' }}">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -465,7 +465,7 @@
                 <div class="nav-label">Lesson</div>
             </a>
 
-            <a href="{{ route('assignments.index') }}" class="nav-item {{ request()->routeIs('assignments*') ? 'active' : '' }}">
+            <a href="/assignments" class="nav-item {{ request()->is('assignments*') ? 'active' : '' }}">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -474,7 +474,7 @@
                 <div class="nav-label">Assignment</div>
             </a>
 
-            <a href="{{ route('discussions.index') }}" class="nav-item {{ request()->routeIs('discussions*') || request()->routeIs('subjects*') ? 'active' : '' }}">
+            <a href="/discussions" class="nav-item {{ request()->is('discussions*') || request()->is('subjects*') ? 'active' : '' }}">
                 <div class="nav-icon">
                     <svg viewBox="0 0 24 24">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
